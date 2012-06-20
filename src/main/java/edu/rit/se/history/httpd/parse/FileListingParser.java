@@ -14,7 +14,7 @@ public class FileListingParser {
 
 	public void parse(DBUtil dbUtil, File file, String version) throws SQLException, FileNotFoundException {
 		Connection conn = dbUtil.getConnection();
-		PreparedStatement ps = conn.prepareStatement("INSERT INTO Filepaths(Filepath,TomcatRelease) VALUES (?,?)");
+		PreparedStatement ps = conn.prepareStatement("INSERT INTO Filepaths(Filepath,HTTPDRelease) VALUES (?,?)");
 		Scanner scanner = new Scanner(file);
 		while (scanner.hasNextLine()) {
 			String line = scanner.nextLine();

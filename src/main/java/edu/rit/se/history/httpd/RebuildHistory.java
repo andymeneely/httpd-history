@@ -18,7 +18,6 @@ import edu.rit.se.history.httpd.parse.CVEsParser;
 import edu.rit.se.history.httpd.parse.FileListingParser;
 import edu.rit.se.history.httpd.parse.GroundedTheoryResultsParser;
 import edu.rit.se.history.httpd.parse.SLOCParser;
-import edu.rit.se.history.httpd.parse.VulnerabilitiesToFilesParser;
 import edu.rit.se.history.httpd.scrapers.GoogleDocExport;
 
 public class RebuildHistory {
@@ -46,18 +45,18 @@ public class RebuildHistory {
 		rebuildSchema(dbUtil);
 		loadSVNXML(dbUtil, props);
 		// filterSVNLog(dbUtil, props);
-		// loadFileListing(dbUtil, props);
-		loadVulnerabilitiesToFiles(dbUtil, props);
+		loadFileListing(dbUtil, props);
+		// loadVulnerabilitiesToSVN(dbUtil, props);
 		// loadGroundedTheoryResults(dbUtil, props);
 		loadCVEs(dbUtil, props);
 		optimizeTables(dbUtil);
-		// loadSLOC(dbUtil, props);
-		buildAnalysis(dbUtil, props);
+		loadSLOC(dbUtil, props);
+		// buildAnalysis(dbUtil, props);
 		log.info("Done.");
 	}
 
 	private Properties setUpProps() throws IOException {
-		Properties props = PropsLoader.getProperties("tomcathistory.properties");
+		Properties props = PropsLoader.getProperties("httpdhistory.properties");
 		DOMConfigurator.configure("log4j.properties.xml");
 		datadir = new File(props.getProperty("history.datadir"));
 		return props;
@@ -94,23 +93,15 @@ public class RebuildHistory {
 	}
 
 	private void loadFileListing(DBUtil dbUtil, Properties props) throws FileNotFoundException, SQLException {
-		log.info("Parsing release files for Tomcat 5.5.0...");
-		new FileListingParser().parse(dbUtil, new File(datadir, props.getProperty("history.filelisting.v5")), "5.5.0");
-		log.info("Parsing release files for Tomcat 6.0.0...");
-		new FileListingParser().parse(dbUtil, new File(datadir, props.getProperty("history.filelisting.v6")), "6.0.0");
-		log.info("Parsing release files for Tomcat 7.0.0...");
-		new FileListingParser().parse(dbUtil, new File(datadir, props.getProperty("history.filelisting.v7")), "7.0.0");
-		log.info("Filtering out filepaths for all Tomcat versions...");
+		log.info("Parsing release files for HTTPD 2.2.0...");
+		new FileListingParser().parse(dbUtil, new File(datadir, props.getProperty("history.filelisting.v22")), "2.2.0");
+		log.info("Filtering out filepaths for all versions...");
 		new FilepathFilters().filter(dbUtil, new File("filters/ignored-filepaths.txt"));
 	}
 
 	private void loadSLOC(DBUtil dbUtil2, Properties props2) throws SQLException, IOException {
-		log.info("Loading SLOC counts for Tomcat 5.5.0...");
-		new SLOCParser().parse(dbUtil, new File(datadir, props.getProperty("history.sloc.v5")), "5.5.0");
-		log.info("Loading SLOC counts for Tomcat 6.0.0...");
-		new SLOCParser().parse(dbUtil, new File(datadir, props.getProperty("history.sloc.v6")), "6.0.0");
-		log.info("Loading SLOC counts for Tomcat 7.0.0...");
-		new SLOCParser().parse(dbUtil, new File(datadir, props.getProperty("history.sloc.v7")), "7.0.0");
+		log.info("Loading SLOC counts for HTTPD 2.2.0...");
+		new SLOCParser().parse(dbUtil, new File(datadir, props.getProperty("history.sloc.v22")), "2.2.0");
 	}
 
 	private void loadGroundedTheoryResults(DBUtil dbUtil, Properties props) throws Exception {
@@ -128,10 +119,9 @@ public class RebuildHistory {
 		throw new IllegalStateException("unimplemented!");
 	}
 
-	private void loadVulnerabilitiesToFiles(DBUtil dbUtil, Properties props) throws Exception {
-		log.info("Parsing CVE to Files...");
-		new VulnerabilitiesToFilesParser().parse(dbUtil,
-				new File(datadir, props.getProperty("history.cve2files.local")));
+	private void loadVulnerabilitiesToSVN(DBUtil dbUtil, Properties props) throws Exception {
+		log.info("Parsing CVE to SVN fixes...");
+		throw new IllegalStateException("unimplemented!");
 	}
 
 	private void optimizeTables(DBUtil dbUtil) throws FileNotFoundException, SQLException, IOException {

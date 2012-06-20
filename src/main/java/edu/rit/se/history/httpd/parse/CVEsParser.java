@@ -15,13 +15,13 @@ public class CVEsParser {
 	public void parse(DBUtil dbUtil, File csv) throws Exception {
 		Connection conn = dbUtil.getConnection();
 		PreparedStatement ps = conn.prepareStatement("INSERT INTO CVE(CVE,CWE,CWETop25,CVSS,ConfidentialityImpact,"
-				+ "IntegrityImpact,AvailabilityImpact,AccessComplexity,AuthRequired,GainedAccess) " + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)");
+				+ "IntegrityImpact,AvailabilityImpact,AccessComplexity,AuthRequired,GainedAccess) " + "VALUES (?,?,?,?,?,?,?,?,?,?)");
 		String line[];
 		CSVReader reader = new CSVReader(new FileReader(csv));
 		reader.readNext(); // skip the header
 		while ((line = reader.readNext()) != null) {
-			for (int i = 1; i <= 13; i++) {
-				if (i == 7) {
+			for (int i = 1; i <= 10; i++) {
+				if (i == 4) { //CVSS score
 					ps.setDouble(i, Double.valueOf(line[i - 1]));
 				} else
 					ps.setString(i, line[i - 1]);
