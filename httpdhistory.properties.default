@@ -1,0 +1,28 @@
+# Copy and paste this file to build.properties for each of your local installations
+# Edit for yourself as needed
+
+history.datadir=C:/data/httpd
+
+# This is your Google account password - so make sure this doesn't get publicized!!
+# I *strongly* recommend using application-specific passwords for this, or even just a separate username
+google.username=???
+google.password=???
+
+history.cve2files.local=HTTPD Vulnerabilities - CVEs to Fixes.csv
+history.cve2files.googledoc=0AutMI5gkPUdLdHpCNDNnVkR4NTk4Mmgxb1gtWmFfOHc&gid=3
+
+history.groundedtheory.local=HTTPD Vulnerabilities Grounded Theory Study.csv
+history.groundedtheory.googledoc=0AutMI5gkPUdLdHpCNDNnVkR4NTk4Mmgxb1gtWmFfOHc&gid=2
+
+history.cves.local=HTTPD Vulnerabilities - CVEs.csv
+history.cves.googledoc=0AutMI5gkPUdLdHpCNDNnVkR4NTk4Mmgxb1gtWmFfOHc&gid=3
+
+history.svnlogxml=httpd-full-svnlog.xml
+
+history.filelisting.v22=httpd2.2.0-files.txt
+
+history.sloc.v5=sloc5.5.csv
+
+history.dbuser=root
+history.dbpw=root
+history.dburl=jdbc:mysql://127.0.0.1:3306/httpdhistory

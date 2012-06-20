@@ -1,0 +1,27 @@
+#These were used to get the full SVN log:
+
+$ svn log http://svn.apache.org/repos/asf/tomcat --verbose --xml > tomcat-full-svnlog.xml
+$ svn log http://svn.apache.org/repos/asf/tocmat/trunk --verbose --xml > tomcat-trunk-svnlog.xml
+
+# To get the list of files for Tomcat 5.5, 6.0, and 7.0
+$ svn ls -R http://svn.apache.org/repos/asf/tomcat/tc5.5.x/tags/TOMCAT_5_5_0/ > tomcat5.5.0-files.txt 
+$ svn ls -R http://svn.apache.org/repos/asf/tomcat/tc6.0.x/tags/TOMCAT_6_0_0/ > tomcat6.0.0-files.txt
+$ svn ls -R http://svn.apache.org/repos/asf/tomcat/tc7.0.x/tags/TOMCAT_7_0_0/ > tomcat7.0.0-files.txt
+
+# For our own SLOC counts, do our own checkouts
+$ svn co http://svn.apache.org/repos/asf/tomcat/tc5.5.x/tags/TOMCAT_5_5_0/
+$ svn co http://svn.apache.org/repos/asf/tomcat/tc6.0.x/tags/TOMCAT_6_0_0/
+$ svn co http://svn.apache.org/repos/asf/tomcat/tc7.0.x/tags/TOMCAT_7_0_0/
+
+# To get SLOC counts, use the cloc script
+# http://sourceforge.net/projects/cloc/
+# This dumps the file-level information into an SQLITE database, and then we dump that out to CSVs
+$ perl cloc-1.55.pl --sql=1 TOMCAT_5_5_0/ | sqlite3 sloc_5.5.db
+$ perl cloc-1.55.pl --sql=1 TOMCAT_6_0_0/ | sqlite3 sloc_6.0.db
+$ perl cloc-1.55.pl --sql=1 TOMCAT_7_0_0/ | sqlite3 sloc_7.0.db
+
+# And then dump from that database out to a csv file (just an example for 5.5)
+$ sqlite3 sloc5.5.db
+> .mode csv
+> .output sloc5.5.csv 
+> select substr(File,14),Language,nCode from t;
