@@ -21,7 +21,7 @@ public class CVEDetails {
 			System.out.print(cve + "\t");
 			HtmlPage page = client.getPage("http://www.cvedetails.com/cve-details.php?cve_id=" + cve);
 			HtmlTable table = page.getHtmlElementById("cvssscorestable");
-			for (int i = 0; i < 7; i++) {
+			for (int i = 0; i < 9; i++) {
 				String cellText = table.getRow(i).getCell(1).asText().split("\\(")[0];
 				System.out.print(cellText + "\t");
 			}
