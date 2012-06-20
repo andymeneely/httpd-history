@@ -17,7 +17,7 @@ public class VulnerabilitiesToFilesParser {
 
 	public void parse(DBUtil dbUtil, File csv) throws SQLException, IOException {
 		Connection conn = dbUtil.getConnection();
-		PreparedStatement ps = conn.prepareStatement("INSERT INTO CVENonSVNFix(CVE,Filepath,Component,UtilComponent,SLOCAdded,SLOCDeleted) "
+		PreparedStatement ps = conn.prepareStatement("INSERT INTO CVESVNFix(CVE,HTTPDRelease,Filepath,Component,UtilComponent,SLOCAdded,SLOCDeleted) "
 				+ "VALUES (?,?,?,?,?,?)");
 		String line[];
 		CSVReader reader = new CSVReader(new FileReader(csv));
