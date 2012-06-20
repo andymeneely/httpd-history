@@ -18,6 +18,7 @@ import edu.rit.se.history.httpd.parse.CVEsParser;
 import edu.rit.se.history.httpd.parse.FileListingParser;
 import edu.rit.se.history.httpd.parse.GroundedTheoryResultsParser;
 import edu.rit.se.history.httpd.parse.SLOCParser;
+import edu.rit.se.history.httpd.parse.VulnSVNFixParser;
 import edu.rit.se.history.httpd.scrapers.GoogleDocExport;
 
 public class RebuildHistory {
@@ -41,12 +42,12 @@ public class RebuildHistory {
 	}
 
 	public void run() throws Exception {
-		downloadGoogleDocs(props);
+		// downloadGoogleDocs(props);
 		rebuildSchema(dbUtil);
 		loadSVNXML(dbUtil, props);
 		// filterSVNLog(dbUtil, props);
 		loadFileListing(dbUtil, props);
-		// loadVulnerabilitiesToSVN(dbUtil, props);
+		loadVulnerabilitiesToSVN(dbUtil, props);
 		// loadGroundedTheoryResults(dbUtil, props);
 		loadCVEs(dbUtil, props);
 		optimizeTables(dbUtil);
@@ -74,8 +75,8 @@ public class RebuildHistory {
 		GoogleDocExport export = new GoogleDocExport();
 		export.add(props.getProperty("history.cves.googledoc"),
 				new File(datadir, props.getProperty("history.cves.local")));
-		export.add(props.getProperty("history.cve2files.googledoc"),
-				new File(datadir, props.getProperty("history.cve2files.local")));
+		export.add(props.getProperty("history.cve2svn.googledoc"),
+				new File(datadir, props.getProperty("history.cve2svn.local")));
 		export.add(props.getProperty("history.groundedtheory.googledoc"),
 				new File(datadir, props.getProperty("history.groundedtheory.local")));
 		export.downloadCSVs(props.getProperty("google.username"), props.getProperty("google.password"));
@@ -88,8 +89,8 @@ public class RebuildHistory {
 
 	private void loadSVNXML(DBUtil dbUtil, Properties props) throws Exception {
 		log.info("Loading the SVN XML into database...");
-		String file = props.getProperty("history.svnlogxml");
-		new LoadSVNtoDB(dbUtil, new File(datadir, file)).run();
+		new LoadSVNtoDB(dbUtil, new File(datadir, props.getProperty("history.svnlogxml.httpd"))).run();
+		new LoadSVNtoDB(dbUtil, new File(datadir, props.getProperty("history.svnlogxml.apr"))).run();
 	}
 
 	private void loadFileListing(DBUtil dbUtil, Properties props) throws FileNotFoundException, SQLException {
@@ -121,7 +122,7 @@ public class RebuildHistory {
 
 	private void loadVulnerabilitiesToSVN(DBUtil dbUtil, Properties props) throws Exception {
 		log.info("Parsing CVE to SVN fixes...");
-		throw new IllegalStateException("unimplemented!");
+		new VulnSVNFixParser().parse(dbUtil, new File(datadir, props.getProperty("history.cve2svn.local")));
 	}
 
 	private void optimizeTables(DBUtil dbUtil) throws FileNotFoundException, SQLException, IOException {

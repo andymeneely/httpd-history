@@ -74,7 +74,6 @@ CREATE TABLE CVESVNFix (
   ID int(10) unsigned NOT NULL auto_increment,
   CVE VARCHAR(15) NOT NULL,
   SVNRevision INTEGER,
-  TomcatRelease VARCHAR(5) NOT NULL,
   PRIMARY KEY  (`ID`)
 ) ENGINE=MyISAM;
 
