@@ -5,6 +5,12 @@
 # Ignore all directories - filepaths that end in /
 %/
 
+# Docs folder
+docs/%
+
+# Test data folders
+%/testdata/% 
+
 # Any files that end in these extensions
 %.txt
 %.html
@@ -17,6 +23,8 @@
 %.jpg
 %.png
 %.gif
+%.dsp
+%.dsw
 
 # These specific files, no matter what directory
 %log4j.properties
@@ -24,12 +32,24 @@
 %.cvsignore
 %KEYS
 %LICENSE
+%LICENCE
 %NOTICE
 %INSTALLLICENSE
+%INSTALL
+%README%
+%LAYOUT
+%ABOUT_APACHE
+%STATUS
+%VERSIONING
+%ROADMAP
 %RELEASE-NOTES
 %CHANGES
 %JAKARTA
 %HISTORY
+%AUTHORS
+%COPYING
+%NEWS
+%NON-UNIX-USE
 %.classpath
 %.project
 
@@ -37,3 +57,6 @@
 %LocalStrings_%.properties
 %LocalStrings.properties
 
+# Some auto-generated Makefiles that aren't interesting
+%Makefile.in
+%NWGNUmakefile
