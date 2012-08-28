@@ -9,7 +9,7 @@ import java.io.InputStreamReader;
  */
 
 /**
- * CVE-2008-2939: /server/core.c
+ * CVE-2008-2939: /modules/proxy/mod_proxy_ftp.c
  * @author harsha
  * @version v2
  * 
