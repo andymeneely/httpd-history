@@ -4,3 +4,4 @@ target/*
 build.properties
 httpdhistory.properties
 bin/
+bisect.properties
