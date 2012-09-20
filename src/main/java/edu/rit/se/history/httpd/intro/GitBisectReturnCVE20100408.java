@@ -1,40 +1,53 @@
 package edu.rit.se.history.httpd.intro;
+
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStreamReader;
 
 /**
+ * CVE-2010-0408: modules/proxy/mod_proxy_ajp.c
  * 
- */
-
-/**
- * CVE-2010-0425: /modules/proxy/mod_proxy_ajp.c
- * @author harsha
- * @version v2
+ * Fix commit: 2fe8ec85fa8ef1340a61e688f3bc43c799add78e
+ * 
+ * Origin commit: 5dbf830701af760e37e1e2c26212c34220516d85
+ * 
+ * <pre>
+ *  git bisect start 2fe8ec85fa8ef1340a61e688f3bc43c799add78e^ 5dbf830701af760e37e1e2c26212c34220516d85 -- modules/proxy/mod_proxy_ajp.c
+ *  git bisect run java -cp ../httpd-history/src/main/java/ edu.rit.se.history.httpgit sd.intro.GitBisectReturnCVE20100408
+ * </pre>
+ * 
+ * @author Andy Meneely
  * 
  */
 public class GitBisectReturnCVE20100408 {
 
-	/**
-	 * @param args
-	 */
+	private static final int GOOD_RETURN_CODE = 0;
+	private static final int BAD_RETURN_CODE = 1;
+	private static final int SKIP_RETURN_CODE = 125;
+
+	private static final String CVE = "CVE-2010-0408";
+	private static final String FILE = "modules/proxy/mod_proxy_ajp.c";
+
 	public static void main(String[] args) {
-		boolean commitStatus = false;
-		//use specific CVE identifier here..
-		System.out.println("Bisecting for <CVE-2010-0408>");
+		if (args.length > 0) {
+			System.out.println("No arguments allowed to this script!");
+			System.exit(SKIP_RETURN_CODE);
+		}
+		System.out.println("===Bisect check for " + CVE + ", " + FILE + "===");
 		try {
-			//args[0] is the full path to the file that was fixed
-			commitStatus = bisectBadOrGood(args[0]);
-			System.out.println("CommitStatus::" + commitStatus);
-			if(commitStatus==true) {
-				System.exit(0);
+			if (isVulnerable(FILE)) {
+				System.out.println("===VULNERABLE===");
+				System.exit(BAD_RETURN_CODE); // vulnerable --> commit was "bad" --> abnormal termination
 			} else {
-				System.exit(1);
+				System.out.println("===NEUTRAL===");
+				System.exit(GOOD_RETURN_CODE); // neutral --> commit was "good" --> normal termination
 			}
-		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
+			System.out.println("===IOException! See stack trace below===");
 			e.printStackTrace();
+			System.exit(SKIP_RETURN_CODE);
 		}
 	}
 
@@ -42,60 +55,50 @@ public class GitBisectReturnCVE20100408 {
 	 * 
 	 * @param fileName
 	 * @return boolean good or bad commit
-	 * @throws FileNotFoundException
+	 * @throws IOException
 	 */
-	public static boolean bisectBadOrGood(String fileName)
-			throws FileNotFoundException {
-		System.out.println("entered bisectBadOrGood");
-		boolean goodCommit = false;
-		try {
-			// Open the file that is the first
-			// command line parameter
-			FileInputStream fstream = new FileInputStream(fileName);
-			// Get the object of DataInputStream
-			DataInputStream in = new DataInputStream(fstream);
-			BufferedReader br = new BufferedReader(new InputStreamReader(in));
-			String strLine;
-			StringBuffer stringBuffer = new StringBuffer();
-			// Read File Line By Line
-			while ((strLine = br.readLine()) != null) {
-				stringBuffer.append(strLine);				
-			}
-			// Close the input stream
-			in.close();
-			//System.out.println(stringBuffer);
-			/**
-			 * if checks for the good commit, else vice versa
-			 * check for the context here, context is determined by what the 
-			 * researcher deems important to the fix
-			 * additional commented lines can be uncommented for checking other 
-			 * contexts that seem fit
-			 */
-			if(stringBuffer.indexOf("if (status != APR_SUCCESS) {")>0
-					&&stringBuffer.indexOf("/* We had a failure: Close connection to backend */")>0
-					&&stringBuffer.indexOf(" apr_brigade_destroy(input_brigade);")>0
-					&&stringBuffer.indexOf("return HTTP_BAD_REQUEST;")>0
-					&&stringBuffer.indexOf("ap_get_brigade failed")>0
-					) {
-				System.out.println("Good Commit Context Met, commit was good");
-				goodCommit = true;
-			} else if(stringBuffer.indexOf("if (status != APR_SUCCESS) {")>0
-					&&stringBuffer.indexOf("/* We had a failure: Close connection to backend */")>0
-					&&stringBuffer.indexOf(" apr_brigade_destroy(input_brigade);")>0
-					&&stringBuffer.indexOf("return HTTP_INTERNAL_SERVER_ERROR;")>0
-					&&stringBuffer.indexOf("ap_get_brigade failed")>0
-					) {
-				System.out.println("Context for good commit not found, bad commit");
-				goodCommit = false;
-			} else {
-				goodCommit = true;
-			}
-		} catch (Exception e) {
-			// Catch exception if any
-			System.err.println("Error: " + e.getMessage());
+	public static boolean isVulnerable(String fileName) throws IOException {
+		boolean isVulnerable = false;
+		// Open the file that is the first
+		// command line parameter
+		FileInputStream fstream = new FileInputStream(fileName);
+		// Get the object of DataInputStream
+		DataInputStream in = new DataInputStream(fstream);
+		BufferedReader br = new BufferedReader(new InputStreamReader(in));
+		String strLine;
+		StringBuffer sb = new StringBuffer();
+		// Read file line by line, removing newlines
+		while ((strLine = br.readLine()) != null) {
+			sb.append(strLine.trim());
 		}
-		System.out.println("exiting bisectBadOrGood");
-		return goodCommit;
-		
+		// Close the input stream
+		in.close();
+		/**
+		 * if the file contains this code, then it's vulnerable
+		 * 
+		 */
+		if (//
+		has(sb, "" + //
+				"if (status != APR_SUCCESS) {" + //
+				"/* We had a failure: Close connection to backend */" + //
+				"conn->close++;" + //
+				"ap_log_error(APLOG_MARK, APLOG_DEBUG, 0, r->server," + //
+				"\"proxy: ap_get_brigade failed\");" + //
+				"apr_brigade_destroy(input_brigade);" + //
+				"return HTTP_INTERNAL_SERVER_ERROR;" + //
+				"}" + //
+				"")) {
+			isVulnerable = true;
+		} else {
+			isVulnerable = false; // no such context is found, must have pre-dated the vulnerability
+		}
+		return isVulnerable;
+	}
+
+	private static boolean has(StringBuffer stringBuffer, String str) {
+		boolean has = stringBuffer.indexOf(str) > 0;
+		if (!has)
+			System.out.println("\tContext not found: " + str);
+		return has;
 	}
 }
