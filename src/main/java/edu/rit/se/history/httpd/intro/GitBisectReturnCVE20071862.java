@@ -1,40 +1,53 @@
 package edu.rit.se.history.httpd.intro;
+
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStreamReader;
 
 /**
+ * CVE-2007-1862: modules/cache/mod_mem_cache.c
  * 
- */
-
-/**
- * CVE-2007-1862: /modules/cache/mod_mem_cache.c
- * @author harsha
- * @version v2
+ * Fix commit: 0fcdd1e21cd2f75c1887e7872e5f0ca79a51f8f4
+ * 
+ * Origin commit: e38c2779c8c33ee701540d122ef569efab8d0462
+ * 
+ * <pre>
+ *  git bisect start 0fcdd1e21cd2f75c1887e7872e5f0ca79a51f8f4^ e38c2779c8c33ee701540d122ef569efab8d0462 -- modules/cache/mod_mem_cache.c
+ *  git bisect run java -cp ../httpd-history/src/main/java/ edu.rit.se.history.httpd.intro.GitBisectReturnCVE20071862
+ * </pre>
+ * 
+ * @author Andy Meneely
  * 
  */
 public class GitBisectReturnCVE20071862 {
 
-	/**
-	 * @param args
-	 */
+	private static final int GOOD_RETURN_CODE = 0;
+	private static final int BAD_RETURN_CODE = 1;
+	private static final int SKIP_RETURN_CODE = 125;
+
+	private static final String CVE = "CVE-2007-1862";
+	private static final String FILE = "modules/cache/mod_mem_cache.c";
+
 	public static void main(String[] args) {
-		boolean commitStatus = false;
-		//use specific CVE identifier here..
-		System.out.println("Bisecting for <CVE-2007-1862>");
+		if (args.length > 0) {
+			System.out.println("No arguments allowed to this script!");
+			System.exit(SKIP_RETURN_CODE);
+		}
+		System.out.println("===Bisect check for " + CVE + ", " + FILE + "===");
 		try {
-			//args[0] is the full path to the file that was fixed
-			commitStatus = bisectBadOrGood(args[0]);
-			System.out.println("CommitStatus::" + commitStatus);
-			if(commitStatus==true) {
-				System.exit(0);
+			if (isVulnerable(FILE)) {
+				System.out.println("===VULNERABLE===");
+				System.exit(BAD_RETURN_CODE); // vulnerable --> commit was "bad" --> abnormal termination
 			} else {
-				System.exit(1);
+				System.out.println("===NEUTRAL===");
+				System.exit(GOOD_RETURN_CODE); // neutral --> commit was "good" --> normal termination
 			}
-		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
+			System.out.println("===IOException! See stack trace below===");
 			e.printStackTrace();
+			System.exit(SKIP_RETURN_CODE);
 		}
 	}
 
@@ -42,62 +55,48 @@ public class GitBisectReturnCVE20071862 {
 	 * 
 	 * @param fileName
 	 * @return boolean good or bad commit
-	 * @throws FileNotFoundException
+	 * @throws IOException
 	 */
-	public static boolean bisectBadOrGood(String fileName)
-			throws FileNotFoundException {
-		System.out.println("entered bisectBadOrGood");
-		boolean goodCommit = false;
-		try {
-			// Open the file that is the first
-			// command line parameter
-			FileInputStream fstream = new FileInputStream(fileName);
-			// Get the object of DataInputStream
-			DataInputStream in = new DataInputStream(fstream);
-			BufferedReader br = new BufferedReader(new InputStreamReader(in));
-			String strLine;
-			StringBuffer stringBuffer = new StringBuffer();
-			// Read File Line By Line
-			while ((strLine = br.readLine()) != null) {
-				stringBuffer.append(strLine);				
-			}
-			// Close the input stream
-			in.close();
-			//System.out.println(stringBuffer);
-			/**
-			 * if checks for the good commit, else vice versa
-			 * check for the context here, context is determined by what the 
-			 * researcher deems important to the fix
-			 * additional commented lines can be uncommented for checking other 
-			 * contexts that seem fit
-			 */
-			if(stringBuffer.indexOf("static apr_table_t *deep_table_copy(apr_pool_t *p, const apr_table_t *table)")>0
-					&&stringBuffer.indexOf("h->req_hdrs = deep_table_copy(r->pool, mobj->req_hdrs);")>0
-					&&stringBuffer.indexOf("h->resp_hdrs = deep_table_copy(r->pool, mobj->header_out);")>0
-					&&stringBuffer.indexOf("mobj->req_hdrs = deep_table_copy(mobj->pool, r->headers_in);")>0
-					&&stringBuffer.indexOf("mobj->header_out = deep_table_copy(mobj->pool, headers_out);")>0
-					&&stringBuffer.indexOf("if (cc_cresp && ap_cache_liststr(r->pool, cc_cresp, \"max-age\", &val)")>0
-					&&stringBuffer.indexOf("maxstale = APR_INT64_C(86400*365);")>0
-					) {
-				System.out.println("Good Commit Context Met, commit was good");
-				goodCommit = true;
-			} else if(stringBuffer.indexOf("static apr_table_t *deep_table_copy(apr_pool_t *p, const apr_table_t *table)")<0
-					&&stringBuffer.indexOf("h->req_hdrs = apr_table_copy(r->pool, mobj->req_hdrs);")>0
-					&&stringBuffer.indexOf("h->resp_hdrs = apr_table_copy(r->pool, mobj->header_out);")>0
-					&&stringBuffer.indexOf("mobj->req_hdrs = apr_table_copy(mobj->pool, r->headers_in);")>0
-					&&stringBuffer.indexOf("mobj->header_out = apr_table_copy(mobj->pool, headers_out);")>0
-					) {
-				System.out.println("Context for good commit not found, bad commit");
-				goodCommit = false;
-			} else {
-				goodCommit = true;
-			}
-		} catch (Exception e) {
-			// Catch exception if any
-			System.err.println("Error: " + e.getMessage());
+	public static boolean isVulnerable(String fileName) throws IOException {
+		boolean isVulnerable = false;
+		// Open the file that is the first
+		// command line parameter
+		FileInputStream fstream = new FileInputStream(fileName);
+		// Get the object of DataInputStream
+		DataInputStream in = new DataInputStream(fstream);
+		BufferedReader br = new BufferedReader(new InputStreamReader(in));
+		String strLine;
+		StringBuffer sb = new StringBuffer();
+		// Read file line by line, removing newlines
+		while ((strLine = br.readLine()) != null) {
+			sb.append(strLine.trim());
 		}
-		System.out.println("exiting bisectBadOrGood");
-		return goodCommit;
-		
+		// Close the input stream
+		in.close();
+		/**
+		 * if the file contains this code, then it's vulnerable
+		 * 
+		 */
+		if (//
+		has(sb, "" + //
+				"h->req_hdrs = apr_table_copy(r->pool, mobj->req_hdrs);" + //
+				"h->resp_hdrs = apr_table_copy(r->pool, mobj->header_out);" + //
+				"return OK;" + //
+				"}" + //
+				"")//
+				&& has(sb, "mobj->req_hdrs = apr_table_copy(mobj->pool, r->headers_in);") //
+				&& has(sb, "mobj->header_out = apr_table_copy(mobj->pool, headers_out);")) {
+			isVulnerable = true;
+		} else {
+			isVulnerable = false; // no such context is found, must have pre-dated the vulnerability
+		}
+		return isVulnerable;
+	}
+
+	private static boolean has(StringBuffer stringBuffer, String str) {
+		boolean has = stringBuffer.indexOf(str) > 0;
+		if (!has)
+			System.out.println("\tContext not found: " + str);
+		return has;
 	}
 }
