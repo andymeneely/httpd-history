@@ -77,11 +77,16 @@ public class GitBisectReturnCVE20020654 {
 		 * if the file contains this code, then it's vulnerable
 		 * 
 		 */
-		if (has(sb, "ap_allow_standard_methods(r, REPLACE_ALLOW, M_GET, M_OPTIONS, M_POST, -1);" + // context
+		if ((has(sb, "ap_allow_standard_methods(r, REPLACE_ALLOW, M_GET, M_OPTIONS, M_POST, -1);" + // context
 				"if ((res = ap_discard_request_body(r)) != OK) {" + // wrong code
 				"return res;" + // wrong code
 				"}" + // wrong code
 				"")//
+				|| has(sb, "ap_allow_methods(r, REPLACE_ALLOW, \"GET\", \"OPTIONS\", \"POST\", NULL);" + // context
+						"if ((res = ap_discard_request_body(r)) != OK) {" + // wrong code
+						"return res;" + // wrong code
+						"}" + // wrong code
+						""))//
 				&& has(sb, "if (ap_strchr_c(variant->file_name, '/'))") // wrong code
 				&& has(sb, "/* XXX this should be more general, and quit using 'specials' */" + // wrong code
 						"if (strncmp(r->filename, \"proxy:\", 6) == 0) {" + // wrong code
