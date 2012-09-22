@@ -79,7 +79,7 @@ public class GitBisectReturnCVE20030254 {
 		 */
 		if (has(sb, "" + //
 				"if ((rv = apr_socket_create(&sock, connect_addr->family, SOCK_STREAM, r->pool)) != APR_SUCCESS) {" + // context
-				" ap_log_rerror(APLOG_MARK, APLOG_ERR, rv, r," + // context
+				"ap_log_rerror(APLOG_MARK, APLOG_ERR, rv, r," + // context
 				"\"proxy: FTP: error creating socket\");" + // context
 				"continue;" + // vulnerability was before here
 				"")// wrong ocde
