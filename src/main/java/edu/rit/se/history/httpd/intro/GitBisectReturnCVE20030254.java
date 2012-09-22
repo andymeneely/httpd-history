@@ -28,7 +28,7 @@ public class GitBisectReturnCVE20030254 {
 	private static final int SKIP_RETURN_CODE = 125;
 
 	private static final String CVE = "CVE-2003-0542";
-	private static final String FILE = "modules/proxy/proxy_ftp.c ";
+	private static final String FILE = "modules/proxy/proxy_ftp.c";
 
 	public static void main(String[] args) {
 		if (args.length > 0) {
