@@ -32,7 +32,7 @@ public class GitBisectReturnCVE20052088 {
 	private static final int SKIP_RETURN_CODE = 125;
 
 	private static final String CVE = "CVE-2004-0885";
-	private static final String FILE = " modules/proxy/mod_proxy_http.c";
+	private static final String FILE = "modules/proxy/mod_proxy_http.c";
 	private static final String PRE_RENAME_FILE = "modules/proxy/proxy_http.c";
 
 	public static void main(String[] args) {
@@ -41,8 +41,10 @@ public class GitBisectReturnCVE20052088 {
 			System.exit(SKIP_RETURN_CODE);
 		}
 		String file = FILE; // file from the fix
-		if (!new File(file).exists())
+		if (!new File(file).exists()){
+			System.out.println(file + " does not exist, using previous file: " + PRE_RENAME_FILE);
 			file = PRE_RENAME_FILE; // if the checkout was before the rename
+		}
 		System.out.println("===Bisect check for " + CVE + ", " + FILE + "===");
 		try {
 			if (isVulnerable(file)) {
