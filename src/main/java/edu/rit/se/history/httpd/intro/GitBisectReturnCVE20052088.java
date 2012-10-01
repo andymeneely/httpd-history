@@ -2,18 +2,20 @@ package edu.rit.se.history.httpd.intro;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
 /**
- * CVE-2005-2088: modules/proxy/mod_proxy_http.c
+ * CVE-2005-2088: modules/proxy/mod_proxy_http.c (formerly modules/proxy/proxy_http.c)
  * 
  * Fix commit: 01fce1eded3d0e78951125b4f26ff9e337907543
  * 
  * Origin commit: 5d855a48777529f38b148c19c021a01685677f79
  * 
- * Note: since there was a rename prior to fixing, we are doing a full-on checkout of the tree, not specific to the branch
+ * Note: since there was a rename prior to fixing, we are doing a full-on checkout of the tree, not specific
+ * to the branch
  * 
  * <pre>
  *  git bisect start d107d7d6af0fa59166ea547a09a3925fb74e498e^ 5d855a48777529f38b148c19c021a01685677f79^ 
@@ -31,15 +33,19 @@ public class GitBisectReturnCVE20052088 {
 
 	private static final String CVE = "CVE-2004-0885";
 	private static final String FILE = "modules/ssl/ssl_engine_init.c";
+	private static final String PRE_RENAME_FILE = "modules/proxy/proxy_http.c";
 
 	public static void main(String[] args) {
 		if (args.length > 0) {
 			System.out.println("No arguments allowed to this script!");
 			System.exit(SKIP_RETURN_CODE);
 		}
+		String file = FILE; // file from the fix
+		if (!new File(file).exists())
+			file = PRE_RENAME_FILE; // if the checkout was before the rename
 		System.out.println("===Bisect check for " + CVE + ", " + FILE + "===");
 		try {
-			if (isVulnerable(FILE)) {
+			if (isVulnerable(file)) {
 				System.out.println("===VULNERABLE===");
 				System.exit(BAD_RETURN_CODE); // vulnerable --> commit was "bad" --> abnormal termination
 			} else {
@@ -80,11 +86,10 @@ public class GitBisectReturnCVE20052088 {
 		 * 
 		 */
 		if (has(sb, //
-				"/*" + // context
-						"* Configure additional context ingredients" + // context
-						"*/" + // context
-						"SSL_CTX_set_options(ctx, SSL_OP_SINGLE_DH_USE);" + // context
-						"}" + // vulnerability fix was before here
+				"save_table);" + // context
+						"}" + // context
+						"/* strip connection listed hop-by-hop headers from response */" + // vuln fix was
+																							// before here
 						"")) {
 			isVulnerable = true;
 		} else {
