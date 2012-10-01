@@ -32,7 +32,7 @@ public class GitBisectReturnCVE20052088 {
 	private static final int SKIP_RETURN_CODE = 125;
 
 	private static final String CVE = "CVE-2004-0885";
-	private static final String FILE = "modules/ssl/ssl_engine_init.c";
+	private static final String FILE = " modules/proxy/mod_proxy_http.c";
 	private static final String PRE_RENAME_FILE = "modules/proxy/proxy_http.c";
 
 	public static void main(String[] args) {
