@@ -1,4 +1,5 @@
 package edu.rit.se.history.httpd.intro;
+
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
@@ -11,8 +12,7 @@ import java.io.InputStreamReader;
 
 /**
  * @author harsha
- * @version v2
- * Checks for good or bad commits for the files in CVE-2012-0883
+ * @version v2 Checks for good or bad commits for the files in CVE-2012-0883
  * 
  */
 public class GitBisectReturnCVE20120883 {
@@ -26,7 +26,7 @@ public class GitBisectReturnCVE20120883 {
 		try {
 			commitStatus = bisectBadOrGood(args[0]);
 			System.out.println("CommitStatus::" + commitStatus);
-			if(commitStatus==true) {
+			if (commitStatus == true) {
 				System.exit(0);
 			} else {
 				System.exit(1);
@@ -36,8 +36,7 @@ public class GitBisectReturnCVE20120883 {
 		}
 	}
 
-	public static boolean bisectBadOrGood(String fileName)
-			throws FileNotFoundException {
+	public static boolean bisectBadOrGood(String fileName) throws FileNotFoundException {
 		System.out.println("entered bisectBadOrGood");
 		boolean goodCommit = false;
 		try {
@@ -51,19 +50,17 @@ public class GitBisectReturnCVE20120883 {
 			StringBuffer stringBuffer = new StringBuffer();
 			// Read File Line By Line
 			while ((strLine = br.readLine()) != null) {
-				stringBuffer.append(strLine);				
+				stringBuffer.append(strLine);
 			}
 			// Close the input stream
 			in.close();
-			if(stringBuffer.indexOf("if test \"x$@SHLIBPATH_VAR@\" != \"x\" ; then")>0 
-					&&stringBuffer.indexOf("@SHLIBPATH_VAR@=\"@exp_libdir@\"")>0
-					) {
+			if (stringBuffer.indexOf("if test \"x$@SHLIBPATH_VAR@\" != \"x\" ; then") > 0
+					&& stringBuffer.indexOf("@SHLIBPATH_VAR@=\"@exp_libdir@\"") > 0) {
 				System.out.println("Good Commit Context Met, commit was good");
 				goodCommit = true;
-			} else if(stringBuffer.indexOf("if test \"x$@SHLIBPATH_VAR@\" != \"x\" ; then")<0 
-					&&stringBuffer.indexOf("@SHLIBPATH_VAR@=\"@exp_libdir@\"")<0
-					&&stringBuffer.indexOf("@SHLIBPATH_VAR@=\"@exp_libdir@:$@SHLIBPATH_VAR@\"")>0
-					) {
+			} else if (stringBuffer.indexOf("if test \"x$@SHLIBPATH_VAR@\" != \"x\" ; then") < 0
+					&& stringBuffer.indexOf("@SHLIBPATH_VAR@=\"@exp_libdir@\"") < 0
+					&& stringBuffer.indexOf("@SHLIBPATH_VAR@=\"@exp_libdir@:$@SHLIBPATH_VAR@\"") > 0) {
 				System.out.println("Context for good commit not found, bad commit");
 				goodCommit = false;
 			} else {

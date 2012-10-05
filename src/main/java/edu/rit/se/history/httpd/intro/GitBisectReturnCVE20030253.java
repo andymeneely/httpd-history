@@ -77,14 +77,11 @@ public class GitBisectReturnCVE20030253 {
 		 * if the file contains this code, then it's vulnerable
 		 * 
 		 */
-		if (/*has(stringBuffer, "" + //
-				" for (;;) {" + // wrong code
-				"status = listensocks[offset].accept_func(&csd," + // context
-				"&listensocks[offset], ptrans);" + // context
-				" if (status == APR_SUCCESS) {" + // context
-				"")
-				&&*/ has(stringBuffer,
-						"if (APR_STATUS_IS_EINTR(status) && one_process && shutdown_pending) {")) {
+		if (/*
+			 * has(stringBuffer, "" + // " for (;;) {" + // wrong code
+			 * "status = listensocks[offset].accept_func(&csd," + // context "&listensocks[offset], ptrans);"
+			 * + // context " if (status == APR_SUCCESS) {" + // context "") &&
+			 */has(stringBuffer, "if (APR_STATUS_IS_EINTR(status) && one_process && shutdown_pending) {")) {
 			isVulnerable = true;
 		} else {
 			isVulnerable = false; // no such context is found, must have pre-dated the vulnerability

@@ -1,4 +1,5 @@
 package edu.rit.se.history.httpd.intro;
+
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
@@ -22,13 +23,13 @@ public class GitBisectReturnCVE20091195_2 {
 	 */
 	public static void main(String[] args) {
 		boolean commitStatus = false;
-		//use specific CVE identifier here..
+		// use specific CVE identifier here..
 		System.out.println("Bisecting for <CVE-2009-1195>");
 		try {
-			//args[0] is the full path to the file that was fixed
+			// args[0] is the full path to the file that was fixed
 			commitStatus = bisectBadOrGood(args[0]);
 			System.out.println("CommitStatus::" + commitStatus);
-			if(commitStatus==true) {
+			if (commitStatus == true) {
 				System.exit(0);
 			} else {
 				System.exit(1);
@@ -44,8 +45,7 @@ public class GitBisectReturnCVE20091195_2 {
 	 * @return boolean good or bad commit
 	 * @throws FileNotFoundException
 	 */
-	public static boolean bisectBadOrGood(String fileName)
-			throws FileNotFoundException {
+	public static boolean bisectBadOrGood(String fileName) throws FileNotFoundException {
 		System.out.println("entered bisectBadOrGood");
 		boolean goodCommit = false;
 		try {
@@ -59,27 +59,23 @@ public class GitBisectReturnCVE20091195_2 {
 			StringBuffer stringBuffer = new StringBuffer();
 			// Read File Line By Line
 			while ((strLine = br.readLine()) != null) {
-				stringBuffer.append(strLine);				
+				stringBuffer.append(strLine);
 			}
 			// Close the input stream
 			in.close();
-			//System.out.println(stringBuffer);
+			// System.out.println(stringBuffer);
 			/**
-			 * if checks for the good commit, else vice versa
-			 * check for the context here, context is determined by what the 
-			 * researcher deems important to the fix
-			 * additional commented lines can be uncommented for checking other 
-			 * contexts that seem fit
+			 * if checks for the good commit, else vice versa check for the context here, context is
+			 * determined by what the researcher deems important to the fix additional commented lines can be
+			 * uncommented for checking other contexts that seem fit
 			 */
-			if(stringBuffer.indexOf("if ((ap_allow_options(r) & OPT_INC_WITH_EXEC) == 0) {")>0
-					&&stringBuffer.indexOf("ctx->flags |= SSI_FLAG_NO_EXEC;")>0
-					&&stringBuffer.indexOf("if (ap_allow_options(r) & OPT_INCNOEXEC) {")<0
-					) {
+			if (stringBuffer.indexOf("if ((ap_allow_options(r) & OPT_INC_WITH_EXEC) == 0) {") > 0
+					&& stringBuffer.indexOf("ctx->flags |= SSI_FLAG_NO_EXEC;") > 0
+					&& stringBuffer.indexOf("if (ap_allow_options(r) & OPT_INCNOEXEC) {") < 0) {
 				System.out.println("Good Commit Context Met, commit was good");
 				goodCommit = true;
-			} else if(stringBuffer.indexOf("if (ap_allow_options(r) & OPT_INCNOEXEC) {")>0
-					&&stringBuffer.indexOf("ctx->flags |= SSI_FLAG_NO_EXEC;")>0
-					) {
+			} else if (stringBuffer.indexOf("if (ap_allow_options(r) & OPT_INCNOEXEC) {") > 0
+					&& stringBuffer.indexOf("ctx->flags |= SSI_FLAG_NO_EXEC;") > 0) {
 				System.out.println("Context for good commit not found, bad commit");
 				goodCommit = false;
 			} else {
@@ -91,6 +87,6 @@ public class GitBisectReturnCVE20091195_2 {
 		}
 		System.out.println("exiting bisectBadOrGood");
 		return goodCommit;
-		
+
 	}
 }

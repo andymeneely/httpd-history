@@ -41,7 +41,7 @@ public class GitBisectReturnCVE20052088 {
 			System.exit(SKIP_RETURN_CODE);
 		}
 		String file = FILE; // file from the fix
-		if (!new File(file).exists()){
+		if (!new File(file).exists()) {
 			System.out.println(file + " does not exist, using previous file: " + PRE_RENAME_FILE);
 			file = PRE_RENAME_FILE; // if the checkout was before the rename
 		}

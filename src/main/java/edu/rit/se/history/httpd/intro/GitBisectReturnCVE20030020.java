@@ -76,15 +76,11 @@ public class GitBisectReturnCVE20030020 {
 		/**
 		 * if the file contains this code, then it's vulnerable
 		 */
-		if (/* initially had this, but took it out 
-		has(stringBuffer, "" + //
-				"{" + // context
-				"char errstr[MAX_STRING_LEN];" + // wrong
-				"apr_size_t len, errstrlen;" + //
-				"apr_file_t *logf = NULL;" + //
-				"const char *referer;" + //
-				"" //
-		) && */ has(stringBuffer, "" + //
+		if (/*
+			 * initially had this, but took it out has(stringBuffer, "" + // "{" + // context
+			 * "char errstr[MAX_STRING_LEN];" + // wrong "apr_size_t len, errstrlen;" + //
+			 * "apr_file_t *logf = NULL;" + // "const char *referer;" + // "" // ) &&
+			 */has(stringBuffer, "" + //
 				"}" + // context
 				"errstrlen = len;" + // context
 				"len += apr_vsnprintf(errstr + len, MAX_STRING_LEN - len, fmt, args);" + // wrong
