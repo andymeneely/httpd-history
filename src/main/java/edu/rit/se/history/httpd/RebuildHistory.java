@@ -79,6 +79,8 @@ public class RebuildHistory {
 				new File(datadir, props.getProperty("history.cve2svn.local")));
 		export.add(props.getProperty("history.groundedtheory.googledoc"),
 				new File(datadir, props.getProperty("history.groundedtheory.local")));
+		export.add(props.getProperty("history.cveintro.googledoc"),
+				new File(datadir, props.getProperty("history.cveintro.local")));
 		export.downloadCSVs(props.getProperty("google.username"), props.getProperty("google.password"));
 	}
 
