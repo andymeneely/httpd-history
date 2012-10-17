@@ -18,7 +18,7 @@ import edu.rit.se.history.httpd.parse.FileListingParser;
 import edu.rit.se.history.httpd.parse.GitLogParser;
 import edu.rit.se.history.httpd.parse.GroundedTheoryResultsParser;
 import edu.rit.se.history.httpd.parse.SLOCParser;
-import edu.rit.se.history.httpd.parse.VulnSVNFixParser;
+import edu.rit.se.history.httpd.parse.CVEToGit;
 import edu.rit.se.history.httpd.scrapers.GoogleDocExport;
 
 public class RebuildHistory {
@@ -42,11 +42,11 @@ public class RebuildHistory {
 	}
 
 	public void run() throws Exception {
-		// downloadGoogleDocs(props);
+		downloadGoogleDocs(props);
 		rebuildSchema(dbUtil);
 		loadGitLog(dbUtil, props);
+		loadCVEToGit(dbUtil, props);
 		// loadFileListing(dbUtil, props);
-		// loadVulnerabilitiesToSVN(dbUtil, props);
 		// loadGroundedTheoryResults(dbUtil, props);
 		// loadCVEs(dbUtil, props);
 		// optimizeTables(dbUtil);
@@ -120,9 +120,9 @@ public class RebuildHistory {
 		throw new IllegalStateException("unimplemented!");
 	}
 
-	private void loadVulnerabilitiesToSVN(DBUtil dbUtil, Properties props) throws Exception {
-		log.info("Parsing CVE to SVN fixes...");
-		new VulnSVNFixParser().parse(dbUtil, new File(datadir, props.getProperty("history.cve2svn.local")));
+	private void loadCVEToGit(DBUtil dbUtil, Properties props) throws Exception {
+		log.info("Parsing CVE to Git tracings...");
+		new CVEToGit().parse(dbUtil, new File(datadir, props.getProperty("history.cveintro.local")));
 	}
 
 	private void optimizeTables(DBUtil dbUtil) throws FileNotFoundException, SQLException, IOException {

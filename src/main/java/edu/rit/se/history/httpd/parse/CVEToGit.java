@@ -1,7 +1,6 @@
 package edu.rit.se.history.httpd.parse;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.sql.PreparedStatement;
 
@@ -11,24 +10,29 @@ import au.com.bytecode.opencsv.CSVReader;
 
 import com.mysql.jdbc.Connection;
 
-public class VulnSVNFixParser {
+public class CVEToGit {
 
 	public void parse(DBUtil dbUtil, File csv) throws Exception {
 		Connection conn = dbUtil.getConnection();
-		PreparedStatement ps = conn.prepareStatement("INSERT INTO CVESVNFix(CVE,SVNRevision) VALUES (?,?)");
+		PreparedStatement ps = conn.prepareStatement("INSERT INTO CVEToGit(CVE,Filepath,CommitIntroduced,CommitFixed) "
+				+ "VALUES (?,?,?,?)");
 		String line[];
 		CSVReader reader = new CSVReader(new FileReader(csv));
 		reader.readNext(); // skip the header
-		String cve = "";
+		String cve = "", filepath = "", commitFixed = "", commitIntroduced = "";
 		while ((line = reader.readNext()) != null) {
-			if (line[0].length() > 0)
-				cve = line[0];
-			ps.setString(1, cve);
-			try {
-				ps.setInt(2, Integer.valueOf(line[2]));
-				ps.addBatch();
-			} catch (NumberFormatException e) {/* skip it */}
+			cve = line[0];
+			filepath = line[2];
+			commitIntroduced = line[3];
+			commitFixed = line[10];
+			int i = 1;
+			ps.setString(i++, cve);
+			ps.setString(i++, filepath);
+			ps.setString(i++, commitFixed);
+			ps.setString(i++, commitIntroduced);
+			ps.addBatch();
 		}
+		reader.close();
 		ps.executeBatch();
 		conn.close();
 	}
