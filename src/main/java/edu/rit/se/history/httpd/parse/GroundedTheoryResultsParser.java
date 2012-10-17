@@ -37,6 +37,7 @@ public class GroundedTheoryResultsParser {
 			ps.setString(10, includes(line[7], "Config", "Both")); // Config?
 			ps.addBatch();
 		}
+		reader.close();
 		psAsset.executeBatch();
 		ps.executeBatch();
 		conn.close();
