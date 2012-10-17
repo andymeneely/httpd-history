@@ -10,7 +10,7 @@ DROP TABLE IF EXISTS CVEGroundedTheory;
 CREATE TABLE GitLog (
   ID int(10) unsigned NOT NULL auto_increment,
   Commit VARCHAR(40) NOT NULL,
-  Parent VARCHAR(40) NOT NULL,
+  Parent VARCHAR(81) NOT NULL,
   AuthorName varchar(45) default NULL,
   AuthorEmail varchar(45) default NULL,
   AuthorDate TIMESTAMP,

@@ -27,17 +27,15 @@ public class GitLogParser {
 	 *  </code>
 	 * 
 	 * @param dbUtil
-	 * @param csv
+	 * @param gitLog
 	 * @throws Exception
 	 */
-	public void parse(DBUtil dbUtil, File csv) throws Exception {
+	public void parse(DBUtil dbUtil, File gitLog) throws Exception {
 		Connection conn = dbUtil.getConnection();
 		PreparedStatement ps = conn.prepareStatement("INSERT INTO GitLog(Commit, AuthorName, AuthorEmail, "
 				+ "AuthorDate, Parent, Subject, Body, NumSignedOffBys) " + "VALUES (?,?,?,?,?,?,?,?)");
-		PreparedStatement ps2 = conn
-				.prepareStatement("INSERT INTO GitLogFiles(Commit,Filepath,NumChanges,LinesInserted,LinesDeleted) "
-						+ "VALUES (?,?,?,?,?)");
-		Scanner scanner = new Scanner(csv);
+		PreparedStatement ps2 = conn.prepareStatement("INSERT INTO GitLogFiles(Commit,Filepath) " + "VALUES (?,?)");
+		Scanner scanner = new Scanner(gitLog);
 		log.debug("Scanning the log...");
 		scanner.nextLine();
 		while (scanner.hasNextLine()) {
@@ -63,7 +61,6 @@ public class GitLogParser {
 					numSignedOffBys++;
 				nextLine = scanner.nextLine();
 			}
-			parseFileChanges(conn, commit, bodyLines, ps2);
 			int i = 1;
 			ps.setString(i++, commit);
 			ps.setString(i++, authorName);
@@ -81,43 +78,6 @@ public class GitLogParser {
 		ps2.executeBatch();
 		scanner.close();
 		conn.close();
-	}
-
-	private static void parseFileChanges(Connection conn, String commit, List<String> bodyLines, PreparedStatement ps2)
-			throws Exception {
-		if (bodyLines.size() < 3) // no changes to files - you can do this by changing file permissions in
-									// git
-			return;
-		for (int i = bodyLines.size() - 3; i >= 0 && !"".equals(bodyLines.get(i)); i--) {
-			String fileChange = bodyLines.get(i);
-			int pipeLoc = fileChange.indexOf("|");
-			int numInsertions = countOccurrences(fileChange.substring(pipeLoc), '+');
-			int numDeletions = countOccurrences(fileChange.substring(pipeLoc), '-');
-			int numChanges;
-			try {
-				numChanges = Integer.valueOf(fileChange.substring(pipeLoc + 1, pipeLoc + 6).trim());
-			} catch (NumberFormatException e) {// Sometimes when there are no changes, there's text saying
-												// there's no changes
-				numChanges = 0;
-			}
-			String file = fileChange.substring(0, pipeLoc).trim();
-			if(file.startsWith(".../")) //remove the .../tests filepath weirdness
-				file = file.substring(4);
-			ps2.setString(1, commit);
-			ps2.setString(2, file);
-			ps2.setInt(3, numChanges);
-			ps2.setInt(4, numInsertions);
-			ps2.setInt(5, numDeletions);
-			ps2.addBatch();
-		}
-	}
-
-	private static int countOccurrences(String str, char c) {
-		int count = 0;
-		for (int i = 0; i < str.length(); i++)
-			if (str.charAt(i) == c)
-				count++;
-		return count;
 	}
 
 	public java.util.Date parseDate(String testStr) throws ParseException {

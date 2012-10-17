@@ -9,13 +9,13 @@ import java.util.Properties;
 import org.apache.log4j.xml.DOMConfigurator;
 import org.chaoticbits.devactivity.DBUtil;
 import org.chaoticbits.devactivity.PropsLoader;
-import org.chaoticbits.devactivity.devnetwork.factory.LoadSVNtoDB;
 
 import com.google.gdata.util.ServiceException;
 
 import edu.rit.se.history.httpd.filter.FilepathFilters;
 import edu.rit.se.history.httpd.parse.CVEsParser;
 import edu.rit.se.history.httpd.parse.FileListingParser;
+import edu.rit.se.history.httpd.parse.GitLogParser;
 import edu.rit.se.history.httpd.parse.GroundedTheoryResultsParser;
 import edu.rit.se.history.httpd.parse.SLOCParser;
 import edu.rit.se.history.httpd.parse.VulnSVNFixParser;
@@ -42,10 +42,9 @@ public class RebuildHistory {
 	}
 
 	public void run() throws Exception {
-		downloadGoogleDocs(props);
+		// downloadGoogleDocs(props);
 		rebuildSchema(dbUtil);
-		// loadGitLog(dbUtil,props);
-		// filterSVNLog(dbUtil, props);
+		loadGitLog(dbUtil, props);
 		// loadFileListing(dbUtil, props);
 		// loadVulnerabilitiesToSVN(dbUtil, props);
 		// loadGroundedTheoryResults(dbUtil, props);
@@ -89,10 +88,9 @@ public class RebuildHistory {
 		dbUtil.executeSQLFile("sql/createTables.sql");
 	}
 
-	private void loadSVNXML(DBUtil dbUtil, Properties props) throws Exception {
-		log.info("Loading the SVN XML into database...");
-		new LoadSVNtoDB(dbUtil, new File(datadir, props.getProperty("history.svnlogxml.httpd"))).run();
-		new LoadSVNtoDB(dbUtil, new File(datadir, props.getProperty("history.svnlogxml.apr"))).run();
+	private void loadGitLog(DBUtil dbUtil, Properties props) throws Exception {
+		log.info("Loading the Git Log into database...");
+		new GitLogParser().parse(dbUtil, new File(datadir, props.getProperty("history.gitlog")));
 	}
 
 	private void loadFileListing(DBUtil dbUtil, Properties props) throws FileNotFoundException, SQLException {
