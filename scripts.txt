@@ -9,6 +9,9 @@ $ svn ls -R http://svn.apache.org/repos/asf/httpd/httpd/tags/2.2.0/ > httpd-2.2.
 # Get the entire git log, in our own special format
 git log --pretty=format:":::%n%H%n%an%n%ae%n%ad%n%P%n%s%n%b" --stat --ignore-space-change > ../httpd-gitlog.txt
 
+#Alternately, if using xml can use this
+$ git log --pretty=format:"<revision><author>%an</author><commit_date>%cd</commit_date><msgbody>%b</msgbody><git_hash>%H</git_hash></revision>" > httpd-log.xml
+
 ### SLOC ###
 # For our own SLOC counts, do our own checkouts
 $ svn co http://svn.apache.org/repos/asf/httpd/httpd/tags/2.2.0/ HTTPD_2_2_0
