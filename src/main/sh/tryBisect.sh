@@ -1,12 +1,10 @@
 #!/bin/bash 
 set -e
-bold=`tput bold`
-normal=`tput sgr0`
 
-if [ $# -ne 3 ];
+if [ $# -lt 3 ];
 then
-    echo "${bold}usage:${normal} tryBisect <CVE number> <vulnerable file> <git fix commit>"
-    echo "${bold}examples:${normal}"
+    echo "usage: tryBisect <CVE number> <vulnerable file> <git fix commit> [<java class>]"
+    echo "examples:"
     echo "    tryBisect 20020392 modules/http/http_protocol.c 9ca73a8515b0c9dabb09a80728295027609d92d5"
     echo "    tryBisect CVE-2002-0392 \"/modules/http/http_protocol.c\" \"9ca73a8515b0c9dabb09a80728295027609d92d5\""
     echo
@@ -15,14 +13,18 @@ then
     exit 1
 fi
 
-echo "${normal}"
 echo
 echo "-----------------------------------------------------------"
 echo
+echo "./tryBisect.sh '$1' '$2' '$3'" $4
+echo
+echo
+
+# TODO: Make sure repository is clean and updated to fixed commit.
 
 #removing letters and dashes, if any, from first argument (CVE number)
 CVE=${1//[CVE-]/}
-echo "${bold}CVE:${normal} $CVE"
+echo "CVE: $CVE"
 echo
 
 #removing prefix slash, if any, from second argument (vulnerable file)
@@ -39,7 +41,7 @@ HTTPD_HISTORY_PATH=$DIR/httpd-history
 
 # Get absolute path for vulnerable file
 FILE_PATH=$HTTPD_PATH/$FILE
-echo "${bold}FILE_PATH:${normal} $FILE_PATH"
+echo "FILE_PATH: $FILE_PATH"
 echo
 
 # If vulnerable file not found check to see if can find a file with the same name and path but in other folder
@@ -63,16 +65,21 @@ fi
 
 # Fixed Git Commit
 FIXED=$3
-echo "${bold}FIXED:${normal} $FIXED"
+echo "FIXED: $FIXED"
 echo
 cd $HTTPD_PATH
 MODIFIED_FUNCTIONS_FIX=$(git diff "$FIXED^" "$FIXED" "$FILE_PATH" | grep -E '^(commit|@@)' | sed 's/@@.*@@//' | uniq)
-echo "${bold}MODIFIED_FUNCTIONS_FIX:${normal}"
+echo "MODIFIED_FUNCTIONS_FIX:"
 echo "$MODIFIED_FUNCTIONS_FIX"
 echo
 
 # Java class for test script
-CLASS=GitBisectReturnCVE$CVE
+if [ -z $4 ]; 
+then
+    CLASS=GitBisectReturnCVE$CVE;
+else
+    CLASS=$4;   
+fi
 
 JAVA_FILE=$HTTPD_HISTORY_PATH/src/main/java/edu/rit/se/history/httpd/intro/$CLASS.java
 
@@ -94,37 +101,45 @@ then
     JAVA_FILE=$(readlink -e $(grep -rl --include='*$CVE*' '$FILE' *))
     TMP=$(basename "$JAVA_FILE")
     CLASS="${TMP%.*}"
-    echo "Using alternative java file: $JAVA_FILE"
-    echo
 fi
 
+echo "Using java file: $JAVA_FILE"
+echo
+
 # Build
-echo "${bold}Building java file...${normal}"
+echo "Building java file..."
 javac $JAVA_FILE
 echo
 
 # Bisect
-echo "${bold}Bisecting...${normal}"
+echo "Bisecting..."
 git checkout .
 git clean  -d  -fx ""
 git bisect reset HEAD
 # Get first version of the file:
 FIRST=$(git log --reverse $FILE_PATH | grep -m 1 commit)
 echo
+echo "FIRST: $FIRST"
+echo
 # With the ^ symbol the bisect uses the immediate previous version:
-git bisect start $FIXED^ ${FIRST:7} -- $FILE_PATH
+echo "git bisect start $FIXED^ ${FIRST:7}^ -- $FILE_PATH"
+echo
+git bisect start $FIXED^ ${FIRST:7}^ -- $FILE_PATH
 echo
 echo
-echo "${bold}Result:"
+#echo "git bisect run java -cp $HTTPD_HISTORY_PATH/src/main/java/ edu.rit.se.history.httpd.intro.$CLASS '$FILE_PATH'"
+echo "git bisect run java -cp $HTTPD_HISTORY_PATH/src/main/java/ edu.rit.se.history.httpd.intro.$CLASS '$FILE_PATH'"
+echo
+echo "Result:"
 echo
 # Run bisect, but only show filtered results:
-BISECT_RESULT=$(git bisect run java -cp $HTTPD_HISTORY_PATH/src/main/java/ edu.rit.se.history.httpd.intro.$CLASS "$FILE_PATH" | grep -v "^\[" | grep -i "is the first bad commit\|error\|exception\|fail")
+BISECT_RESULT=$(git bisect run java -cp $HTTPD_HISTORY_PATH/src/main/java/ edu.rit.se.history.httpd.intro.$CLASS $FILE_PATH | grep -v "^\[" | grep -i "is the first bad commit\|error\|exception\|fail")
 echo $BISECT_RESULT
 BAD_COMMIT=${BISECT_RESULT%% *}
 #echo "BAD_COMMIT: $BAD_COMMIT"
-echo "${normal}"
+echo
 MODIFIED_FUNCTIONS_BAD=$(git diff "$BAD_COMMIT^" "$BAD_COMMIT" "$FILE_PATH" | grep -E '^(commit|@@)' | sed 's/@@.*@@//' | uniq)
-echo "${bold}MODIFIED_FUNCTIONS_BAD:${normal}"
+echo "MODIFIED_FUNCTIONS_BAD:"
 echo "$MODIFIED_FUNCTIONS_BAD"
 echo
 echo
