@@ -42,16 +42,16 @@ public class RebuildHistory {
 	}
 
 	public void run() throws Exception {
-		// downloadGoogleDocs(props);
+		downloadGoogleDocs(props);
 		rebuildSchema(dbUtil);
-		loadSVNXML(dbUtil, props);
+		// loadGitLog(dbUtil,props);
 		// filterSVNLog(dbUtil, props);
-		loadFileListing(dbUtil, props);
-		loadVulnerabilitiesToSVN(dbUtil, props);
+		// loadFileListing(dbUtil, props);
+		// loadVulnerabilitiesToSVN(dbUtil, props);
 		// loadGroundedTheoryResults(dbUtil, props);
-		loadCVEs(dbUtil, props);
-		optimizeTables(dbUtil);
-		loadSLOC(dbUtil, props);
+		// loadCVEs(dbUtil, props);
+		// optimizeTables(dbUtil);
+		// loadSLOC(dbUtil, props);
 		// buildAnalysis(dbUtil, props);
 		log.info("Done.");
 	}

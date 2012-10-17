@@ -1,37 +1,42 @@
 DROP VIEW IF EXISTS RepoLog;
-DROP TABLE IF EXISTS SVNLog;
-DROP TABLE IF EXISTS SVNLogFiles;
+DROP TABLE IF EXISTS GitLog;
+DROP TABLE IF EXISTS GitLogFiles;
+DROP TABLE IF EXISTS GitFileChurn;
 DROP TABLE IF EXISTS Filepaths;
 DROP TABLE IF EXISTS CVE;
-DROP TABLE IF EXISTS CVESVNFix;
+DROP TABLE IF EXISTS CVEToGit;
 DROP TABLE IF EXISTS CVEGroundedTheory;
-DROP TABLE IF EXISTS CVEGroundedTheoryAssets;
 
-CREATE TABLE SVNLog (
+CREATE TABLE GitLog (
   ID int(10) unsigned NOT NULL auto_increment,
-  Revision VARCHAR(20) NOT NULL,
+  Commit VARCHAR(40) NOT NULL,
+  Parent VARCHAR(40) NOT NULL,
   AuthorName varchar(45) default NULL,
+  AuthorEmail varchar(45) default NULL,
   AuthorDate TIMESTAMP,
-  Message longtext,
+  Subject VARCHAR(5000) NOT NULL,
+  Body longtext NOT NULL,
+  NumSignedOffBys INTEGER DEFAULT 0,
   PRIMARY KEY  (ID)
 )ENGINE=MyISAM;
 
-CREATE TABLE SVNLogFiles (
+CREATE TABLE GitLogFiles (
   ID int(10) unsigned NOT NULL auto_increment,
-  Revision VARCHAR(20) NOT NULL,
+  Commit VARCHAR(40) NOT NULL,
   Filepath varchar(500) NOT NULL,
-  Action varchar(1),
   NumChanges int(10) unsigned,
   LinesInserted int(10) unsigned,
   LinesDeleted int(10) unsigned,
-  LinesNew int(10) unsigned,
+  LinesDeletedSelf int(10) unsigned,
+  LinesDeletedOther int(10) unsigned,
+  AuthorsAffected int(10) unsigned,
   PRIMARY KEY  (`ID`)
 ) ENGINE=MyISAM;
 
 CREATE VIEW RepoLog AS
-	SELECT l.id, l.revision, l.authorname, l.authordate, l.message, lf.filepath, lf.Action 
-	FROM SVNLog l, SVNLogFiles lf
-  		WHERE lf.revision=l.revision;
+	SELECT l.id, l.commit, l.authorname, l.authordate, l.body, lf.filepath 
+	FROM GitLog l, GitLogFiles lf
+  		WHERE lf.commit=l.commit;
 
 CREATE TABLE CVE (
   ID int(10) unsigned NOT NULL auto_increment,
@@ -57,20 +62,14 @@ CREATE TABLE CVEGroundedTheory (
   OutputCleansing ENUM('Yes', 'No') NOT NULL,
   NonIOImprovedLogic ENUM('Yes', 'No') NOT NULL,
   DomainSpecific ENUM('Yes', 'No') NOT NULL,
+  ExceptionHandling ENUM('Yes', 'No') NOT NULL,
   Regression ENUM('Yes', 'No') NOT NULL,
   SourceCode ENUM('Yes', 'No') NOT NULL,
   ConfigFile ENUM('Yes', 'No') NOT NULL,
   PRIMARY KEY  (`ID`)
 ) ENGINE=MyISAM;
 
-CREATE TABLE CVEGroundedTheoryAssets (
-  ID int(10) unsigned NOT NULL auto_increment,
-  CVE VARCHAR(15) NOT NULL,
-  Asset VARCHAR(50) NOT NULL,
-  PRIMARY KEY  (`ID`)
-) ENGINE=MyISAM;
-
-CREATE TABLE CVESVNFix (
+CREATE TABLE CVEToGit (
   ID int(10) unsigned NOT NULL auto_increment,
   CVE VARCHAR(15) NOT NULL,
   SVNRevision INTEGER,

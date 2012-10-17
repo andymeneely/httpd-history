@@ -17,8 +17,7 @@ history.groundedtheory.googledoc=0AutMI5gkPUdLdHpCNDNnVkR4NTk4Mmgxb1gtWmFfOHc&gi
 history.cves.local=googledocs/HTTPD Vulnerabilities - CVEs.csv
 history.cves.googledoc=0AutMI5gkPUdLdHpCNDNnVkR4NTk4Mmgxb1gtWmFfOHc&gid=4
 
-history.svnlogxml.httpd=httpd-full-svnlog.xml
-history.svnlogxml.apr=httpd-apr-full-svnlog.xml
+history.gitlog=httpd-gitlog.txt
 
 history.filelisting.v22=httpd2.2.0-files.txt
 
