@@ -8,13 +8,13 @@ history.datadir=C:/data/httpd
 google.username=???
 google.password=???
 
-history.cve2svn.local=HTTPD Vulnerabilities - CVEs to Fixes.csv
+history.cve2svn.local=googledocs/HTTPD Vulnerabilities - CVEs to Fixes.csv
 history.cve2svn.googledoc=0AutMI5gkPUdLdHpCNDNnVkR4NTk4Mmgxb1gtWmFfOHc&gid=3
 
-history.groundedtheory.local=HTTPD Vulnerabilities Grounded Theory Study.csv
+history.groundedtheory.local=googledocs/HTTPD Vulnerabilities Grounded Theory Study.csv
 history.groundedtheory.googledoc=0AutMI5gkPUdLdHpCNDNnVkR4NTk4Mmgxb1gtWmFfOHc&gid=2
 
-history.cves.local=HTTPD Vulnerabilities - CVEs.csv
+history.cves.local=googledocs/HTTPD Vulnerabilities - CVEs.csv
 history.cves.googledoc=0AutMI5gkPUdLdHpCNDNnVkR4NTk4Mmgxb1gtWmFfOHc&gid=4
 
 history.svnlogxml.httpd=httpd-full-svnlog.xml
