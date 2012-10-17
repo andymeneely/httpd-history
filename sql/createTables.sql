@@ -72,7 +72,8 @@ CREATE TABLE CVEGroundedTheory (
 CREATE TABLE CVEToGit (
   ID int(10) unsigned NOT NULL auto_increment,
   CVE VARCHAR(15) NOT NULL,
-  SVNRevision INTEGER,
+  CommitIntroduced VARCHAR(40) NOT NULL,
+  CommitFixed VARCHAR(40) NOT NULL,
   PRIMARY KEY  (`ID`)
 ) ENGINE=MyISAM;
 
