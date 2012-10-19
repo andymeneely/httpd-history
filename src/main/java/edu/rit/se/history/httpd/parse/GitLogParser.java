@@ -61,6 +61,7 @@ public class GitLogParser {
 					numSignedOffBys++;
 				nextLine = scanner.nextLine();
 			}
+			parseFileChanges(conn, commit, bodyLines, ps2);
 			int i = 1;
 			ps.setString(i++, commit);
 			ps.setString(i++, authorName);
@@ -78,6 +79,22 @@ public class GitLogParser {
 		ps2.executeBatch();
 		scanner.close();
 		conn.close();
+	}
+
+	private static void parseFileChanges(Connection conn, String commit, List<String> bodyLines, PreparedStatement ps2)
+			throws Exception {
+		if (bodyLines.size() < 3) // no changes to files - you can do this by changing file permissions in git
+			return;
+		for (int i = bodyLines.size() - 3; i >= 0 && !"".equals(bodyLines.get(i)); i--) {
+			String fileChange = bodyLines.get(i);
+			int pipeLoc = fileChange.indexOf("|");
+			String file = fileChange.substring(0, pipeLoc).trim();
+			if (file.startsWith(".../")) // remove the .../tests filepath weirdness
+				file = file.substring(4);
+			ps2.setString(1, commit);
+			ps2.setString(2, file);
+			ps2.addBatch();
+		}
 	}
 
 	public java.util.Date parseDate(String testStr) throws ParseException {
