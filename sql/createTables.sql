@@ -24,7 +24,6 @@ CREATE TABLE GitLogFiles (
   ID int(10) unsigned NOT NULL auto_increment,
   Commit VARCHAR(40) NOT NULL,
   Filepath varchar(500) NOT NULL,
-  NumChanges int(10) unsigned,
   LinesInserted int(10) unsigned,
   LinesDeleted int(10) unsigned,
   LinesDeletedSelf int(10) unsigned,
