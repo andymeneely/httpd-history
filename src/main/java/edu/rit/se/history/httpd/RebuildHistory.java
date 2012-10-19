@@ -44,12 +44,12 @@ public class RebuildHistory {
 	public void run() throws Exception {
 		downloadGoogleDocs(props);
 		rebuildSchema(dbUtil);
-		loadGitLog(dbUtil, props);
+		// loadGitLog(dbUtil, props);
 		loadCVEToGit(dbUtil, props);
 		// loadFileListing(dbUtil, props);
 		// loadGroundedTheoryResults(dbUtil, props);
 		// loadCVEs(dbUtil, props);
-		// optimizeTables(dbUtil);
+		optimizeTables(dbUtil);
 		// loadSLOC(dbUtil, props);
 		// buildAnalysis(dbUtil, props);
 		log.info("Done.");
