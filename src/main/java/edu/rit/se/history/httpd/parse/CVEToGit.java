@@ -28,8 +28,8 @@ public class CVEToGit {
 			int i = 1;
 			ps.setString(i++, cve);
 			ps.setString(i++, filepath);
-			ps.setString(i++, commitFixed);
 			ps.setString(i++, commitIntroduced);
+			ps.setString(i++, commitFixed);
 			ps.addBatch();
 		}
 		reader.close();
