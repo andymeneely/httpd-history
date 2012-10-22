@@ -1,0 +1,3 @@
+DELETE FROM GitLogFiles WHERE Filepath LIKE 'httpd-trunk/%';
+
+DELETE FROM GitLogFiles WHERE FILEPATH NOT LIKE '%.c' AND FILEPATH NOT LIKE '%.h'; 

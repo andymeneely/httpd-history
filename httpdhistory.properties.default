@@ -24,6 +24,16 @@ history.gitlog=httpd-gitlog.txt
 
 history.filelisting.v22=httpd2.2.0-files.txt
 
+# Parsed by java.sql.Timestamp.valueOf()
+# yyyy-mm-dd hh:mm:ss.fffffffff
+history.timeline.start=1996-07-03 06:18:15.0
+history.timeline.stop=2012-10-16 20:07:30.0
+# In milliseconds, please (but make it like days or months)
+# 1 day is 86400000 ms
+# 30 days is 2592000000 ms
+# 180 days is 15552000000 ms
+history.timeline.step=2592000000
+
 history.sloc.v5=sloc5.5.csv
 
 history.dbuser=root

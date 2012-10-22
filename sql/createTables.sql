@@ -6,6 +6,7 @@ DROP TABLE IF EXISTS Filepaths;
 DROP TABLE IF EXISTS CVE;
 DROP TABLE IF EXISTS CVEToGit;
 DROP TABLE IF EXISTS CVEGroundedTheory;
+DROP TABLE IF EXISTS Timeline;
 
 CREATE TABLE GitLog (
   ID int(10) unsigned NOT NULL auto_increment,
@@ -83,5 +84,14 @@ CREATE TABLE Filepaths (
   HTTPDRelease varchar(5) NOT NULL,
   SLOCType VARCHAR(100),
   SLOC INTEGER,
+  PRIMARY KEY  (`ID`)
+) ENGINE=MyISAM;
+
+CREATE TABLE Timeline(
+  ID int(10) unsigned NOT NULL auto_increment,
+  Filepath VARCHAR(500) NOT NULL,
+  NumCVEs INTEGER NOT NULL,
+  AtTime TIMESTAMP NOT NULL,
+  CVEs TEXT NOT NULL,
   PRIMARY KEY  (`ID`)
 ) ENGINE=MyISAM;

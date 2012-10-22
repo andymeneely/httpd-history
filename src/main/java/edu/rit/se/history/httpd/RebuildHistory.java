@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Properties;
 
 import org.apache.log4j.xml.DOMConfigurator;
@@ -12,13 +13,14 @@ import org.chaoticbits.devactivity.PropsLoader;
 
 import com.google.gdata.util.ServiceException;
 
+import edu.rit.se.history.httpd.analysis.TimelineTables;
 import edu.rit.se.history.httpd.filter.FilepathFilters;
+import edu.rit.se.history.httpd.parse.CVEToGit;
 import edu.rit.se.history.httpd.parse.CVEsParser;
 import edu.rit.se.history.httpd.parse.FileListingParser;
 import edu.rit.se.history.httpd.parse.GitLogParser;
 import edu.rit.se.history.httpd.parse.GroundedTheoryResultsParser;
 import edu.rit.se.history.httpd.parse.SLOCParser;
-import edu.rit.se.history.httpd.parse.CVEToGit;
 import edu.rit.se.history.httpd.scrapers.GoogleDocExport;
 
 public class RebuildHistory {
@@ -44,12 +46,14 @@ public class RebuildHistory {
 	public void run() throws Exception {
 		downloadGoogleDocs(props);
 		rebuildSchema(dbUtil);
-		// loadGitLog(dbUtil, props);
+		loadGitLog(dbUtil, props);
+		filterGitLog(dbUtil);
 		loadCVEToGit(dbUtil, props);
 		// loadFileListing(dbUtil, props);
 		// loadGroundedTheoryResults(dbUtil, props);
 		// loadCVEs(dbUtil, props);
 		optimizeTables(dbUtil);
+		timeline(dbUtil, props);
 		// loadSLOC(dbUtil, props);
 		// buildAnalysis(dbUtil, props);
 		log.info("Done.");
@@ -93,6 +97,11 @@ public class RebuildHistory {
 		new GitLogParser().parse(dbUtil, new File(datadir, props.getProperty("history.gitlog")));
 	}
 
+	private void filterGitLog(DBUtil dbUtil) throws Exception {
+		log.info("Filtering the git log...");
+		dbUtil.executeSQLFile("sql/filter-gitlog.sql");
+	}
+
 	private void loadFileListing(DBUtil dbUtil, Properties props) throws FileNotFoundException, SQLException {
 		log.info("Parsing release files for HTTPD 2.2.0...");
 		new FileListingParser().parse(dbUtil, new File(datadir, props.getProperty("history.filelisting.v22")), "2.2.0");
@@ -128,6 +137,13 @@ public class RebuildHistory {
 	private void optimizeTables(DBUtil dbUtil) throws FileNotFoundException, SQLException, IOException {
 		log.info("Optimizing tables...");
 		dbUtil.executeSQLFile("sql/optimizeTables.sql");
+	}
+
+	private void timeline(DBUtil dbUtil, Properties props) throws Exception {
+		log.info("Constructing file-level timelines...");
+		new TimelineTables(dbUtil).build(Timestamp.valueOf(props.getProperty("history.timeline.start")),
+				Timestamp.valueOf(props.getProperty("history.timeline.stop")),
+				Long.valueOf(props.getProperty("history.timeline.step")));
 	}
 
 	private void buildAnalysis(DBUtil dbUtil, Properties props) throws FileNotFoundException, SQLException, IOException {

@@ -1,14 +1,17 @@
-select distinct
-    cveFixed.cve, repo.commit
-from
-    CVEToGit as cveFixed,
-    CVEToGit as cveIntro,
-    RepoLog as repo
-where
-    cveFixed.filepath like '%mod_proxy_http%' and cveIntro.filepath like '%mod_proxy_http%' and repo.filepath like '%mod_proxy_http%' and (cveFixed.CommitIntroduced = repo.commit) and repo.authordate < str_to_date('01/01/2009', '%d/%m/%Y') and cveIntro.cve in (select 
-            cve
-        from
-            CVEToGit as cveFixed,
-            RepoLog as repo
-        where
-            cveFixed.commitFixed = repo.commit and (repo.authordate is null or repo.authordate > str_to_date('01/01/2009', '%d/%m/%Y')));
+/* repo.commit as commitIntroduced if we need it */
+SELECT COUNT(DISTINCT cveFixed.cve) 
+FROM
+    CVEToGit AS cveFixed,
+    CVEToGit AS cveIntro,
+    RepoLog AS repo
+WHERE
+    cveFixed.filepath LIKE '%mod_proxy_http%' 
+    AND cveIntro.filepath LIKE '%mod_proxy_http%' 
+    AND repo.filepath LIKE '%mod_proxy_http%' 
+    AND (cveFixed.CommitIntroduced = repo.commit) 
+    AND repo.authordate < str_to_date('01/01/2009', '%d/%m/%Y') 
+    AND cveIntro.cve in (SELECT cve FROM CVEToGit AS cveFixed,
+            				RepoLog AS repo
+        				WHERE
+            				cveFixed.commitFixed = repo.commit 
+            				AND (repo.authordate IS NULL OR repo.authordate > str_to_date('01/01/2009', '%d/%m/%Y')));
