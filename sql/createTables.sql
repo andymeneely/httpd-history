@@ -1,7 +1,7 @@
 DROP VIEW IF EXISTS RepoLog;
 DROP TABLE IF EXISTS GitLog;
 DROP TABLE IF EXISTS GitLogFiles;
-DROP TABLE IF EXISTS GitFileChurn;
+DROP TABLE IF EXISTS GitChurnAuthorsAffected;
 DROP TABLE IF EXISTS Filepaths;
 DROP TABLE IF EXISTS CVE;
 DROP TABLE IF EXISTS CVEToGit;
@@ -32,6 +32,15 @@ CREATE TABLE GitLogFiles (
   AuthorsAffected int(10) unsigned,
   PRIMARY KEY  (`ID`)
 ) ENGINE=MyISAM;
+
+CREATE TABLE GitChurnAuthorsAffected(
+  ID int(10) unsigned NOT NULL auto_increment,
+  Commit VARCHAR(40) NOT NULL,
+  Filepath varchar(500) NOT NULL,
+  AuthorAffected VARCHAR(40) NOT NULL,
+  PRIMARY KEY  (`ID`)
+) ENGINE=MyISAM;
+
 
 CREATE VIEW RepoLog AS
 	SELECT l.id, l.commit, l.authorname, l.authordate, l.body, lf.filepath 

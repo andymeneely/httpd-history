@@ -17,6 +17,7 @@ import edu.rit.se.history.httpd.analysis.TimelineTables;
 import edu.rit.se.history.httpd.filter.FilepathFilters;
 import edu.rit.se.history.httpd.parse.CVEToGit;
 import edu.rit.se.history.httpd.parse.CVEsParser;
+import edu.rit.se.history.httpd.parse.ChurnParser;
 import edu.rit.se.history.httpd.parse.FileListingParser;
 import edu.rit.se.history.httpd.parse.GitLogParser;
 import edu.rit.se.history.httpd.parse.GroundedTheoryResultsParser;
@@ -49,6 +50,7 @@ public class RebuildHistory {
 		loadGitLog(dbUtil, props);
 		filterGitLog(dbUtil);
 		loadCVEToGit(dbUtil, props);
+		loadChurn(dbUtil, props);
 		// loadFileListing(dbUtil, props);
 		// loadGroundedTheoryResults(dbUtil, props);
 		// loadCVEs(dbUtil, props);
@@ -123,6 +125,11 @@ public class RebuildHistory {
 	private void loadCVEs(DBUtil dbUtil, Properties props) throws Exception {
 		log.info("Parsing CVE details...");
 		new CVEsParser().parse(dbUtil, new File(datadir, props.getProperty("history.cves.local")));
+	}
+	
+	private void loadChurn(DBUtil dbUtil, Properties props) throws Exception {
+		log.info("Parsing churn data...");
+		new ChurnParser().parse(dbUtil, new File(datadir, props.getProperty("history.gitlog.churn")));
 	}
 
 	private void filterSVNLog(DBUtil dbUtil, Properties props) {

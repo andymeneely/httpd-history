@@ -22,6 +22,8 @@ history.cveintro.googledoc=0ApQLJygPvlirdGNVYk45d0VFaDRGV3RVWXJrZF8zNHc&gid=0
 
 history.gitlog=httpd-gitlog.txt
 
+history.gitlog.churn=httpd-churnlog.txt
+
 history.filelisting.v22=httpd2.2.0-files.txt
 
 # Parsed by java.sql.Timestamp.valueOf()
