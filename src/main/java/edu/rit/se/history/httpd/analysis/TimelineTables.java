@@ -12,22 +12,19 @@ import com.mysql.jdbc.Connection;
 public class TimelineTables {
 	private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TimelineTables.class);
 
-	private static String cveQuerySQL = "SELECT cveFixed.cve CVE FROM " //
-			+ "CVEToGit AS cveFixed, " //
-			+ "CVEToGit AS cveIntro, " //
-			+ "RepoLog AS repo " //
+	private static String cveQuerySQL = "SELECT DISTINCT c2g.cve CVE FROM " //
+			+ "CVEToGit AS c2g, " //
+			+ "RepoLog AS repoIntro, " //
+			+ "RepoLog AS repoFixed " //
 			+ "WHERE " //
-			+ "cveFixed.filepath LIKE ? " //
-			+ "AND cveIntro.filepath LIKE ? " //
-			+ "AND repo.filepath LIKE ? " //
-			+ "AND (cveFixed.CommitIntroduced = repo.commit) " //
-			+ "AND repo.authordate < ? " //
-			+ "AND cveIntro.cve in (SELECT cve FROM CVEToGit AS cveFixed, " //
-			+ "						RepoLog AS repo " //
-			+ "						WHERE " //
-			+ "            				cveFixed.commitFixed = repo.commit " //
-			+ "            				AND (repo.authordate IS NULL OR repo.authordate > ?)) " //
-			+ "GROUP BY cveFixed.cve";
+			+ "c2g.filepath LIKE ? " //
+			+ "AND repoIntro.filepath LIKE ? " //
+			+ "AND repoFixed.filepath LIKE ? " //
+			+ "AND c2g.CommitIntroduced = repoIntro.commit " //
+			+ "AND repoIntro.authordate < ? " //
+			+ "AND c2g.CommitFixed = repoFixed.commit " //
+			+ "AND repoFixed.authordate > ? " //
+	;
 
 	private final DBUtil dbUtil;
 
