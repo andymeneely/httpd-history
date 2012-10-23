@@ -10,10 +10,12 @@ import java.util.Properties;
 import org.apache.log4j.xml.DOMConfigurator;
 import org.chaoticbits.devactivity.DBUtil;
 import org.chaoticbits.devactivity.PropsLoader;
+import org.chaoticbits.devactivity.testutil.dbverify.DBVerifyRunner;
 
 import com.google.gdata.util.ServiceException;
 
 import edu.rit.se.history.httpd.analysis.TimelineTables;
+import edu.rit.se.history.httpd.dbverify.CodeChurnForAllCommits;
 import edu.rit.se.history.httpd.filter.FilepathFilters;
 import edu.rit.se.history.httpd.parse.CVEToGit;
 import edu.rit.se.history.httpd.parse.CVEsParser;
@@ -50,13 +52,13 @@ public class RebuildHistory {
 		loadGitLog(dbUtil, props);
 		filterGitLog(dbUtil);
 		loadCVEToGit(dbUtil, props);
+		optimizeTables(dbUtil);
 		loadChurn(dbUtil, props);
 		// loadFileListing(dbUtil, props);
 		// loadGroundedTheoryResults(dbUtil, props);
 		// loadCVEs(dbUtil, props);
-		optimizeTables(dbUtil);
 		timeline(dbUtil, props);
-		// loadSLOC(dbUtil, props);
+		verify(dbUtil);
 		// buildAnalysis(dbUtil, props);
 		log.info("Done.");
 	}
@@ -126,7 +128,7 @@ public class RebuildHistory {
 		log.info("Parsing CVE details...");
 		new CVEsParser().parse(dbUtil, new File(datadir, props.getProperty("history.cves.local")));
 	}
-	
+
 	private void loadChurn(DBUtil dbUtil, Properties props) throws Exception {
 		log.info("Parsing churn data...");
 		new ChurnParser().parse(dbUtil, new File(datadir, props.getProperty("history.gitlog.churn")));
@@ -151,6 +153,13 @@ public class RebuildHistory {
 		new TimelineTables(dbUtil).build(Timestamp.valueOf(props.getProperty("history.timeline.start")),
 				Timestamp.valueOf(props.getProperty("history.timeline.stop")),
 				Long.valueOf(props.getProperty("history.timeline.step")));
+	}
+
+	private void verify(DBUtil dbUtil) throws Exception {
+		log.info("Running db verifications...");
+		DBVerifyRunner runner = new DBVerifyRunner(dbUtil);
+		runner.add(new CodeChurnForAllCommits());
+		runner.run();
 	}
 
 	private void buildAnalysis(DBUtil dbUtil, Properties props) throws FileNotFoundException, SQLException, IOException {
