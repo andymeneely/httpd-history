@@ -27,10 +27,17 @@ public class ChurnParser {
 				.prepareStatement("INSERT INTO GitChurnAuthorsAffected(Commit, Filepath, AuthorAffected) VALUES (?,?,?) ");
 		Scanner scanner = new Scanner(churnLog);
 		log.debug("Scanning the churn log...");
-		scanner.nextLine();
 		while (scanner.hasNextLine()) {
 			String commit = scanner.nextLine();
 			String filepath = scanner.nextLine();
+			String nextLine = scanner.nextLine();
+			while (isCommitHash(nextLine)) {
+				filepath = scanner.nextLine();
+				nextLine = scanner.nextLine();
+				// must have been an error on running that last one
+				// skip it, and keep going two-at-a-time until we get a "total churn" line
+				// which means we're good to go on
+			}
 			Integer linesInserted = parseInt(scanner.nextLine(), "Lines Added:\t");
 			Integer linesDeleted = parseInt(scanner.nextLine(), "Lines Deleted:\t");
 			Integer linesDeletedSelf = parseInt(scanner.nextLine(), "Lines Deleted, self:\t");
@@ -56,6 +63,10 @@ public class ChurnParser {
 		conn.close();
 	}
 
+	private boolean isCommitHash(String line) {
+		return line.matches("[0-9a-f]{40}");
+	}
+	
 	private String parseAuthorsAffected(PreparedStatement ps, String nextLine, String commit, String filepath) throws SQLException {
 		String[] authorsAffected = nextLine.split("\t");
 		for (String authorAffected : authorsAffected) {
