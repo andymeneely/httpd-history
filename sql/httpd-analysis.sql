@@ -15,3 +15,12 @@ WHERE
         				WHERE
             				cveFixed.commitFixed = repo.commit 
             				AND (repo.authordate IS NULL OR repo.authordate > str_to_date('01/01/2009', '%d/%m/%Y')));
+/*Query for recent churn*/
+SELECT RepoLog.filepath, 
+      (sum(Files.LinesInserted)-sum(Files.LinesDeleted)) AS 'recentChurn'
+FROM httpdhistory.GitLogFiles AS Files, httpdhistory.RepoLog
+WHERE Files.FilePath=RepoLog.FilePath 
+    AND Files.FilePath LIKE '%http_protocol.c'
+    AND Files.commit=RepoLog.commit 
+    AND RepoLog.authordate>str_to_date('01/01/2006', '%d/%m/%Y')
+    AND RepoLog.authordate<str_to_date('01/08/2008', '%d/%m/%Y')            				
