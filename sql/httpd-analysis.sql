@@ -16,10 +16,22 @@ WHERE
             				cveFixed.commitFixed = repo.commit 
             				AND (repo.authordate IS NULL OR repo.authordate > str_to_date('01/01/2009', '%d/%m/%Y')));
 /*Query for recent churn*/
-DROP VIEW IF EXISTS RecentChurn_Jun07;
-CREATE VIEW RecentChurn_Jun07 AS SELECT RepoLog.filepath AS 'File', (sum(Files.LinesInserted)-sum(Files.LinesDeleted)) AS 'RecentChurn'
-FROM httpdhistory.GitLogFiles AS Files, httpdhistory.RepoLog
-WHERE RepoLog.filepath in (SELECT filepath from httpdhistory.GitLogFiles)
-    AND RepoLog.authordate>str_to_date('01/02/2007', '%d/%m/%Y')
-    AND RepoLog.authordate<str_to_date('01/06/2007', '%d/%m/%Y')
-    AND RepoLog.commit=Files.commit GROUP BY RepoLog.filepath;
+DROP TABLE IF EXISTS RecentChurn;
+CREATE TABLE RecentChurn AS
+SELECT 
+    RepoLog.filepath,
+    RepoLog.authordate,
+    RepoLog.commit,
+    SUM(GitLogFiles.LinesInserted) + SUM(GitLogFiles.LinesDeleted),
+    COUNT(DISTINCT GitLogFiles.commit),
+    GROUP_CONCAT(GitLogFiles.commit)
+FROM
+    RepoLog,
+    GitLogFiles
+WHERE
+    RepoLog.filepath = GitLogFiles.filepath and 
+    RepoLog.authordate > str_to_date('01/03/2007', '%d/%m/%Y') and 
+    RepoLog.authordate < DATE_ADD(str_to_date('01/03/2007', '%d/%m/%Y'),
+        INTERVAL 30 DAY) AND 
+    RepoLog.commit = GitLogFiles.commit
+GROUP BY RepoLog.filepath;
