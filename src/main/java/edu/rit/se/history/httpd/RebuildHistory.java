@@ -25,6 +25,7 @@ import edu.rit.se.history.httpd.parse.GitLogParser;
 import edu.rit.se.history.httpd.parse.GroundedTheoryResultsParser;
 import edu.rit.se.history.httpd.parse.SLOCParser;
 import edu.rit.se.history.httpd.scrapers.GoogleDocExport;
+import edu.rit.se.history.httpd.visualize.ActiveVulnHeatMap;
 
 public class RebuildHistory {
 	private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(RebuildHistory.class);
@@ -39,6 +40,10 @@ public class RebuildHistory {
 
 	public DBUtil getDbUtil() {
 		return dbUtil;
+	}
+
+	public Properties getProps() {
+		return props;
 	}
 
 	public RebuildHistory() throws Exception {
@@ -59,6 +64,7 @@ public class RebuildHistory {
 		// loadCVEs(dbUtil, props);
 		timeline(dbUtil, props);
 		verify(dbUtil);
+		visualizeVulnerabilitySeasons();
 		// buildAnalysis(dbUtil, props);
 		log.info("Done.");
 	}
@@ -160,6 +166,11 @@ public class RebuildHistory {
 		DBVerifyRunner runner = new DBVerifyRunner(dbUtil);
 		runner.add(new CodeChurnForAllCommits());
 		runner.run();
+	}
+
+	private void visualizeVulnerabilitySeasons() throws Exception {
+		log.info("Building visualization of vulnerability seasons...");
+		new ActiveVulnHeatMap().makeVisual(dbUtil, props);
 	}
 
 	private void buildAnalysis(DBUtil dbUtil, Properties props) throws FileNotFoundException, SQLException, IOException {
