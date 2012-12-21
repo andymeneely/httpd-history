@@ -20,11 +20,13 @@ public class ChurnParser {
 	 */
 	public void parse(DBUtil dbUtil, File churnLog) throws Exception {
 		Connection conn = dbUtil.getConnection();
-		PreparedStatement ps = conn
-				.prepareStatement("UPDATE GitLogFiles SET "
-						+ "LinesInserted=?, LinesDeleted=?, LinesDeletedSelf=?, LinesDeletedOther=?, AuthorsAffected=? WHERE Commit=? AND Filepath=?");
+		PreparedStatement ps = conn.prepareStatement("UPDATE GitLogFiles SET "
+				+ "LinesInserted=?, LinesDeleted=?, LinesDeletedSelf=?, LinesDeletedOther=?, "
+				+ "AuthorsAffected=?, EffectiveAuthors=?, NewEffectiveAuthor=? WHERE Commit=? AND Filepath=?");
 		PreparedStatement psAuthorAffected = conn
 				.prepareStatement("INSERT INTO GitChurnAuthorsAffected(Commit, Filepath, AuthorAffected) VALUES (?,?,?) ");
+		PreparedStatement psEffectiveAuthors = conn
+				.prepareStatement("INSERT INTO GitChurnEffectiveAuthors(Commit, Filepath, EffectiveAuthor) VALUES (?,?,?) ");
 		Scanner scanner = new Scanner(churnLog);
 		log.debug("Scanning the churn log...");
 		while (scanner.hasNextLine()) {
@@ -44,13 +46,18 @@ public class ChurnParser {
 			Integer linesDeletedOther = parseInt(scanner.nextLine(), "Lines Deleted, other:\t");
 			Integer authorsAffected = parseInt(scanner.nextLine(), "Number of Authors Affected:\t");
 			parseAuthorsAffected(psAuthorAffected, scanner.nextLine(), commit, filepath);
-			//anything else?
+			Integer effectiveAuthors = parseInt(scanner.nextLine(), "Number of Effective Authors:\t");
+			parseEffectiveAuthors(psEffectiveAuthors, scanner.nextLine(), commit, filepath);
+			String isNewEffectiveAuthor = scanner.nextLine().substring("New effective author?\t".length() + 1);
+			scanner.nextLine(); //skip the empty line
 			int i = 1;
 			ps.setInt(i++, linesInserted);
 			ps.setInt(i++, linesDeleted);
 			ps.setInt(i++, linesDeletedSelf);
 			ps.setInt(i++, linesDeletedOther);
 			ps.setInt(i++, authorsAffected);
+			ps.setInt(i++, effectiveAuthors);
+			ps.setString(i++, isNewEffectiveAuthor);
 			ps.setString(i++, commit);
 			ps.setString(i++, filepath);
 			ps.addBatch();
@@ -66,13 +73,26 @@ public class ChurnParser {
 	private boolean isCommitHash(String line) {
 		return line.matches("[0-9a-f]{40}");
 	}
-	
-	private String parseAuthorsAffected(PreparedStatement ps, String nextLine, String commit, String filepath) throws SQLException {
+
+	private String parseAuthorsAffected(PreparedStatement ps, String nextLine, String commit, String filepath)
+			throws SQLException {
 		String[] authorsAffected = nextLine.split("\t");
 		for (String authorAffected : authorsAffected) {
 			ps.setString(1, commit);
 			ps.setString(2, filepath);
 			ps.setString(3, authorAffected);
+			ps.addBatch();
+		}
+		return null;
+	}
+
+	private String parseEffectiveAuthors(PreparedStatement ps, String nextLine, String commit, String filepath)
+			throws SQLException {
+		String[] effectiveAuthors = nextLine.split("\t");
+		for (String author : effectiveAuthors) {
+			ps.setString(1, commit);
+			ps.setString(2, filepath);
+			ps.setString(3, author);
 			ps.addBatch();
 		}
 		return null;

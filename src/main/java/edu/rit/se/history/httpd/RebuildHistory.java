@@ -52,7 +52,7 @@ public class RebuildHistory {
 	}
 
 	public void run() throws Exception {
-		downloadGoogleDocs(props);
+		// downloadGoogleDocs(props);
 		rebuildSchema(dbUtil);
 		loadGitLog(dbUtil, props);
 		filterGitLog(dbUtil);
