@@ -9,6 +9,14 @@
 #			src/main/sh/ 	<--where this script is
 #
 # Assume that we are in httpd,
+#
+# A typical run;
+#
+# httpd-history/src/main/sh/gitchurn.sh ../revisions.txt 1>httpd-data/httpd-churnlog.txt 2>gitchurn.err
+#
+# Output is piped to httpd-data/httpd-churnlog.txt
+# Errors are piped to gitchurn.err
+# Note that revisions.txt is in the current directory, but then you have to specify ../revisions.txt becuase it cd's to 
 
 cd git/
 
