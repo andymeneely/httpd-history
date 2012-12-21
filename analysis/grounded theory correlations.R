@@ -1,6 +1,6 @@
 library(RODBC)
 library(lattice)
-conn <- odbcConnect("tomcathistory", uid="tomcathistory", pwd="tomcathistory", case="tolower")
+conn <- odbcConnect("httpdhistory", uid="httpdhistory", pwd="httpdhistory", case="tolower")
 
 cve <- sqlQuery(conn, "SELECT * FROM CVEResults")
 fixchurn <- sqlQuery(conn, "SELECT * FROM CVEFixChurn")
