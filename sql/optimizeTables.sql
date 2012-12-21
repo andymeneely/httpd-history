@@ -4,7 +4,11 @@ CREATE INDEX FilepathIndex USING BTREE ON Filepaths(Filepath);
 CREATE UNIQUE INDEX GitLogCommitIndex USING BTREE ON GitLog(Commit);
 CREATE UNIQUE INDEX GitLogFilesIndex USING BTREE ON GitLogFiles(Commit,Filepath);
 CREATE INDEX GitLogFilesFilepathIndex USING BTREE ON GitLogFiles(Filepath);
+CREATE INDEX GitChurnEffectiveAuthorsAuthor USING BTREE ON GitChurnEffectiveAuthors(EffectiveAuthor);
+CREATE INDEX GitChurnAuthorsAffectedAuthor USING BTREE ON GitChurnAuthorsAffected(AuthorAffected);
 CREATE INDEX CVEToGitIndex USING BTREE ON CVEToGit(CVE,Filepath);
+CREATE INDEX CVEToGitCommitIntroduced USING BTREE ON CVEToGit(CommitIntroduced);
+CREATE INDEX CVEToGitCommitFixed USING BTREE ON CVEToGit(CommitFixed);
 
 OPTIMIZE TABLE GitLog;
 OPTIMIZE TABLE GitLogFiles;

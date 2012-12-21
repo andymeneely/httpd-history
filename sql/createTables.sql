@@ -53,9 +53,20 @@ CREATE TABLE GitChurnEffectiveAuthors(
   PRIMARY KEY  (`ID`)
 ) ENGINE=MyISAM;
 
-
 CREATE VIEW RepoLog AS
-	SELECT l.id, l.commit, l.authorname, l.authordate, l.body, lf.filepath 
+	SELECT l.id, 
+		l.commit, 
+		l.AuthorName, 
+		l.AuthorDate, 
+		l.Body, 
+		lf.Filepath,
+		lf.LinesInserted,
+		lf.LinesDeleted,
+		lf.LinesDeletedSelf,
+		lf.LinesDeletedOther,
+		lf.AuthorsAffected,
+		lf.EffectiveAuthors,
+		lf.NewEffectiveAuthor
 	FROM GitLog l, GitLogFiles lf
   		WHERE lf.commit=l.commit;
 

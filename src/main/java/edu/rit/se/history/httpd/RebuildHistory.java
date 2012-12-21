@@ -14,6 +14,7 @@ import org.chaoticbits.devactivity.testutil.dbverify.DBVerifyRunner;
 
 import com.google.gdata.util.ServiceException;
 
+import edu.rit.se.history.httpd.analysis.BayesianPrediction;
 import edu.rit.se.history.httpd.analysis.TimelineTables;
 import edu.rit.se.history.httpd.dbverify.CodeChurnForAllCommits;
 import edu.rit.se.history.httpd.filter.FilepathFilters;
@@ -66,7 +67,8 @@ public class RebuildHistory {
 		//timeline(dbUtil, props);
 		//verify(dbUtil);
 		//visualizeVulnerabilitySeasons();
-		// buildAnalysis(dbUtil, props);
+		buildAnalysis(dbUtil, props);
+		// prediction();
 		log.info("Done.");
 	}
 
@@ -184,5 +186,10 @@ public class RebuildHistory {
 
 	private void buildAnalysis(DBUtil dbUtil, Properties props) throws FileNotFoundException, SQLException, IOException {
 		dbUtil.executeSQLFile("sql/analysis.sql");
+	}
+
+	private void prediction() throws Exception {
+		log.info("Prediction analysis...");
+		new BayesianPrediction(dbUtil).run();
 	}
 }

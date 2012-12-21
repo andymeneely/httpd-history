@@ -5,6 +5,7 @@ DROP VIEW IF EXISTS ComponentsWithFixes;
 DROP VIEW IF EXISTS AssetsCompromisedResults;
 DROP VIEW IF EXISTS CVEFixChurnTemp;
 DROP VIEW IF EXISTS CVEFixChurn; 
+DROP TABLE IF EXISTS VulnIntroAll;
 
 CREATE VIEW CVEResults AS 
 	SELECT 	c.CVE, 
@@ -97,4 +98,12 @@ CREATE VIEW ComponentsWithFixes AS
 		      Sum(If(SLOCType='Bourne Shell' or SLOCType='DOS Batch', SLOC, 0)) NumShellSLOC,
 		      GROUP_CONCAT(Filepath SEPARATOR '\n') Filepaths
 		FROM CVEFixResults GROUP BY Component, UtilComponent
+;
+
+CREATE TABLE VulnIntroAll AS
+	SELECT	r.*,
+			r.LinesDeleted + r.LinesInserted as TotalChurn,
+			IF(r.LinesDeleted=0, 0, r.LinesDeletedOther/r.LinesDeleted) as PercIntChurn,
+			IF(c2g.CommitIntroduced IS NOT NULL, "Yes", "No") VulnIntro
+	FROM RepoLog r LEFT OUTER JOIN CVEToGit c2g ON r.Commit=c2g.CommitIntroduced
 ;
