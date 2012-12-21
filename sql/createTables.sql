@@ -25,7 +25,7 @@ CREATE TABLE GitLog (
 CREATE TABLE GitLogFiles (
   ID int(10) unsigned NOT NULL auto_increment,
   Commit VARCHAR(40) NOT NULL,
-  Filepath varchar(500) NOT NULL,
+  Filepath varchar(50) NOT NULL,
   LinesInserted int(10) unsigned,
   LinesDeleted int(10) unsigned,
   LinesDeletedSelf int(10) unsigned,
@@ -39,7 +39,7 @@ CREATE TABLE GitLogFiles (
 CREATE TABLE GitChurnAuthorsAffected(
   ID int(10) unsigned NOT NULL auto_increment,
   Commit VARCHAR(40) NOT NULL,
-  Filepath varchar(500) NOT NULL,
+  Filepath varchar(100) NOT NULL,
   AuthorAffected VARCHAR(40) NOT NULL,
   PRIMARY KEY  (`ID`)
 ) ENGINE=MyISAM;
@@ -92,7 +92,7 @@ CREATE TABLE CVEGroundedTheory (
 CREATE TABLE CVEToGit (
   ID int(10) unsigned NOT NULL auto_increment,
   CVE VARCHAR(15) NOT NULL,
-  Filepath VARCHAR(500) NOT NULL,
+  Filepath VARCHAR(50) NOT NULL,
   CommitIntroduced VARCHAR(40) NOT NULL,
   CommitFixed VARCHAR(40) NOT NULL,
   PRIMARY KEY  (`ID`)
@@ -100,7 +100,7 @@ CREATE TABLE CVEToGit (
 
 CREATE TABLE Filepaths (
   ID int(10) unsigned NOT NULL auto_increment,
-  Filepath varchar(500) NOT NULL,
+  Filepath varchar(100) NOT NULL,
   HTTPDRelease varchar(5) NOT NULL,
   SLOCType VARCHAR(100),
   SLOC INTEGER,
@@ -109,7 +109,7 @@ CREATE TABLE Filepaths (
 
 CREATE TABLE Timeline(
   ID int(10) unsigned NOT NULL auto_increment,
-  Filepath VARCHAR(500) NOT NULL,
+  Filepath VARCHAR(50) NOT NULL,
   NumCVEs INTEGER NOT NULL,
   AtTime TIMESTAMP NOT NULL,
   CVEs TEXT NOT NULL,
