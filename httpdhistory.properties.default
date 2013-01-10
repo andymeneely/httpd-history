@@ -24,7 +24,7 @@ history.gitlog=httpd-gitlog.txt
 
 history.gitlog.churn=httpd-churnlog.txt
 
-history.filelisting.v22=httpd2.2.0-files.txt
+history.filelisting.v22=httpd-2.2.0-files.txt
 
 # Parsed by java.sql.Timestamp.valueOf()
 # yyyy-mm-dd hh:mm:ss.fffffffff
