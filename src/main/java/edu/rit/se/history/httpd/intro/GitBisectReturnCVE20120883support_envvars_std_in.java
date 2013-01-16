@@ -16,7 +16,7 @@ import java.util.List;
  * Fix commit: //___FIX___
  * 
  * <pre>
- *  ./tryBisect.sh 20120883 support/envvars-std.in //___FIX___ GitBisectReturnCVE20120883support_envvars-std_in
+ *  ./tryBisect.sh 20120883 support/envvars-std.in //___FIX___ GitBisectReturnCVE20120883support_envvars_std_in
  * </pre>
  *
  * Result: _ is the first bad commit
@@ -24,7 +24,7 @@ import java.util.List;
  * @author Alberto Rodriguez
  * 
  */
-public class GitBisectReturnCVE20120883support_envvars-std_in {
+public class GitBisectReturnCVE20120883support_envvars_std_in {
 
 	private static final int GOOD_RETURN_CODE = 0;
 	private static final int BAD_RETURN_CODE = 1;
