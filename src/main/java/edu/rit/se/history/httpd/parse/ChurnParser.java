@@ -103,6 +103,7 @@ public class ChurnParser {
 		for (String remove : removes) {
 			str = str.replaceAll(remove, "");
 		}
+		
 		return Integer.valueOf(str.trim());
 	}
 }

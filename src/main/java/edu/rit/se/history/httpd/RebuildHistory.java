@@ -26,6 +26,7 @@ import edu.rit.se.history.httpd.parse.GitLogParser;
 import edu.rit.se.history.httpd.parse.GroundedTheoryResultsParser;
 import edu.rit.se.history.httpd.parse.SLOCParser;
 import edu.rit.se.history.httpd.scrapers.GoogleDocExport;
+
 //import edu.rit.se.history.httpd.visualize.ActiveVulnHeatMap;
 
 public class RebuildHistory {
@@ -53,14 +54,15 @@ public class RebuildHistory {
 	}
 
 	public void run() throws Exception {
-                //downloadGoogleDocs(props);
+        //downloadGoogleDocs(props);
 		//rebuildSchema(dbUtil);
 		//loadGitLog(dbUtil, props);
 		//filterGitLog(dbUtil);
 		//loadCVEToGit(dbUtil, props);
 		//optimizeTables(dbUtil);
 		//loadChurn(dbUtil, props);
-		recentChurn(dbUtil);
+		//recentChurn(dbUtil, props);
+		projectChurn(dbUtil, props);
 		// loadFileListing(dbUtil, props);
 		// loadGroundedTheoryResults(dbUtil, props);
 		// loadCVEs(dbUtil, props);
@@ -69,6 +71,13 @@ public class RebuildHistory {
 		//visualizeVulnerabilitySeasons();
 		buildAnalysis(dbUtil, props);
 		// prediction();
+		loadFileListing(dbUtil, props);
+		//loadGroundedTheoryResults(dbUtil, props);
+		//loadCVEs(dbUtil, props);
+		timeline(dbUtil, props);
+		verify(dbUtil);
+		visualizeVulnerabilitySeasons();
+		buildAnalysis(dbUtil, props);
 		log.info("Done.");
 	}
 
@@ -145,9 +154,14 @@ public class RebuildHistory {
 		new ChurnParser().parse(dbUtil, new File(datadir, props.getProperty("history.gitlog.churn")));
 	}
 	
-	private void recentChurn(DBUtil dbUtil) throws Exception {
+	private void recentChurn(DBUtil dbUtil, Properties props) throws Exception {
 		log.info("loading recent churn data...");
-		new RecentChurn().load(dbUtil);
+		new RecentChurn().load(dbUtil, props);
+		
+	}
+	private void projectChurn(DBUtil dbUtil, Properties props) throws Exception {
+		log.info("loading project churn data...");
+		new ProjectChurn().load(dbUtil, props);
 		
 	}
 
