@@ -15,6 +15,8 @@ import org.chaoticbits.devactivity.testutil.dbverify.DBVerifyRunner;
 import com.google.gdata.util.ServiceException;
 
 import edu.rit.se.history.httpd.analysis.BayesianPrediction;
+import edu.rit.se.history.httpd.analysis.ProjectChurn;
+import edu.rit.se.history.httpd.analysis.RecentChurn;
 import edu.rit.se.history.httpd.analysis.TimelineTables;
 import edu.rit.se.history.httpd.dbverify.CodeChurnForAllCommits;
 import edu.rit.se.history.httpd.filter.FilepathFilters;
@@ -26,8 +28,6 @@ import edu.rit.se.history.httpd.parse.GitLogParser;
 import edu.rit.se.history.httpd.parse.GroundedTheoryResultsParser;
 import edu.rit.se.history.httpd.parse.SLOCParser;
 import edu.rit.se.history.httpd.scrapers.GoogleDocExport;
-
-//import edu.rit.se.history.httpd.visualize.ActiveVulnHeatMap;
 
 public class RebuildHistory {
 	private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(RebuildHistory.class);
@@ -55,29 +55,21 @@ public class RebuildHistory {
 
 	public void run() throws Exception {
         //downloadGoogleDocs(props);
-		//rebuildSchema(dbUtil);
-		//loadGitLog(dbUtil, props);
-		//filterGitLog(dbUtil);
-		//loadCVEToGit(dbUtil, props);
-		//optimizeTables(dbUtil);
-		//loadChurn(dbUtil, props);
-		//recentChurn(dbUtil, props);
-		projectChurn(dbUtil, props);
-		// loadFileListing(dbUtil, props);
+		rebuildSchema(dbUtil);
+		loadGitLog(dbUtil, props);
+		filterGitLog(dbUtil);
+		loadCVEToGit(dbUtil, props);
+		optimizeTables(dbUtil);
+		loadChurn(dbUtil, props);
+		computeChurn(dbUtil,props);
+//		 loadFileListing(dbUtil, props);
 		// loadGroundedTheoryResults(dbUtil, props);
-		// loadCVEs(dbUtil, props);
+		 loadCVEs(dbUtil, props);
 		//timeline(dbUtil, props);
-		//verify(dbUtil);
-		//visualizeVulnerabilitySeasons();
-		buildAnalysis(dbUtil, props);
-		// prediction();
-		loadFileListing(dbUtil, props);
-		//loadGroundedTheoryResults(dbUtil, props);
-		//loadCVEs(dbUtil, props);
-		timeline(dbUtil, props);
 		verify(dbUtil);
 		visualizeVulnerabilitySeasons();
 		buildAnalysis(dbUtil, props);
+		// prediction();
 		log.info("Done.");
 	}
 
@@ -154,15 +146,11 @@ public class RebuildHistory {
 		new ChurnParser().parse(dbUtil, new File(datadir, props.getProperty("history.gitlog.churn")));
 	}
 	
-	private void recentChurn(DBUtil dbUtil, Properties props) throws Exception {
-		log.info("loading recent churn data...");
-		new RecentChurn().load(dbUtil, props);
-		
-	}
-	private void projectChurn(DBUtil dbUtil, Properties props) throws Exception {
-		log.info("loading project churn data...");
-		new ProjectChurn().load(dbUtil, props);
-		
+	private void computeChurn(DBUtil dbUtil, Properties props) throws Exception {
+		log.info("Computing recent churn...");
+		new RecentChurn().compute(dbUtil, Long.parseLong(props.getProperty("history.timeline.step")));
+		log.info("Computing project churn...");
+		new ProjectChurn().compute(dbUtil, Long.parseLong(props.getProperty("history.timeline.step")));
 	}
 
 	private void filterSVNLog(DBUtil dbUtil, Properties props) {

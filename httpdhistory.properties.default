@@ -36,6 +36,9 @@ history.timeline.stop=2012-10-16 20:07:30.0
 # 180 days is 15552000000 ms
 history.timeline.step=2592000000
 
+# The time back to be considered "recent"
+history.churn.recent.step=2592000000
+
 history.sloc.v5=sloc5.5.csv
 
 history.dbuser=root
