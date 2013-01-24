@@ -1,9 +1,10 @@
-DROP VIEW IF EXISTS RepoLog;
+DROP TABLE IF EXISTS RepoLog;
 DROP TABLE IF EXISTS GitLog;
 DROP TABLE IF EXISTS GitLogFiles;
 DROP TABLE IF EXISTS GitChurnAuthorsAffected;
 DROP TABLE IF EXISTS GitChurnEffectiveAuthors;
 DROP TABLE IF EXISTS Filepaths;
+DROP TABLE IF EXISTS ReleaseHistory;
 DROP TABLE IF EXISTS CVE;
 DROP TABLE IF EXISTS CVEToGit;
 DROP TABLE IF EXISTS CVEGroundedTheory;
@@ -19,6 +20,7 @@ CREATE TABLE GitLog (
   Subject VARCHAR(5000) NOT NULL,
   Body longtext NOT NULL,
   NumSignedOffBys INTEGER DEFAULT 0,
+  ReleaseVer VARCHAR(15), 
   PRIMARY KEY  (ID)
 )ENGINE=MyISAM;
 
@@ -55,22 +57,12 @@ CREATE TABLE GitChurnEffectiveAuthors(
   PRIMARY KEY  (`ID`)
 ) ENGINE=MyISAM;
 
-CREATE VIEW RepoLog AS
-	SELECT l.id, 
-		l.commit, 
-		l.AuthorName, 
-		l.AuthorDate, 
-		l.Body, 
-		lf.Filepath,
-		lf.LinesInserted,
-		lf.LinesDeleted,
-		lf.LinesDeletedSelf,
-		lf.LinesDeletedOther,
-		lf.AuthorsAffected,
-		lf.EffectiveAuthors,
-		lf.NewEffectiveAuthor
-	FROM GitLog l, GitLogFiles lf
-  		WHERE lf.commit=l.commit;
+CREATE TABLE ReleaseHistory(
+	ID int(10) unsigned NOT NULL auto_increment,
+	ReleaseVer	VARCHAR(15) NOT NULL,
+	ReleaseDate TIMESTAMP NOT NULL,
+	PRIMARY KEY  (ID)
+) ENGINE=MyISAM;
 
 CREATE TABLE CVE (
   ID int(10) unsigned NOT NULL auto_increment,

@@ -31,8 +31,6 @@ import edu.rit.se.history.httpd.parse.ReleaseParser;
 import edu.rit.se.history.httpd.parse.SLOCParser;
 import edu.rit.se.history.httpd.scrapers.GoogleDocExport;
 
-
-
 public class RebuildHistory {
 	private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(RebuildHistory.class);
 
@@ -58,28 +56,26 @@ public class RebuildHistory {
 	}
 
 	public void run() throws Exception {
-        //downloadGoogleDocs(props);
-		//rebuildSchema(dbUtil);
-		//loadGitLog(dbUtil, props);
-		//filterGitLog(dbUtil);
-		//loadCVEToGit(dbUtil, props);
-		//optimizeTables(dbUtil);
-		//loadChurn(dbUtil, props);
-		//computeChurn(dbUtil,props);
-		loadReleaseHistory(dbUtil,props);
+		// downloadGoogleDocs(props);
+		rebuildSchema(dbUtil);
+		loadGitLog(dbUtil, props);
+		filterGitLog(dbUtil);
+		// loadCVEToGit(dbUtil, props);
+		optimizeTables(dbUtil);
+		loadChurn(dbUtil, props);
+		// computeChurn(dbUtil,props);
+		loadReleaseHistory(dbUtil, props);
 		loadGitRelease(dbUtil);
-//		 loadFileListing(dbUtil, props);
+		// loadFileListing(dbUtil, props);
 		// loadGroundedTheoryResults(dbUtil, props);
-		 //loadCVEs(dbUtil, props);
-		//timeline(dbUtil, props);
+		// loadCVEs(dbUtil, props);
+		// timeline(dbUtil, props);
 		verify(dbUtil);
 		visualizeVulnerabilitySeasons();
-		buildAnalysis(dbUtil, props);
+		// buildAnalysis(dbUtil, props);
 		// prediction();
 		log.info("Done.");
 	}
-
-	
 
 	private Properties setUpProps() throws IOException {
 		Properties props = PropsLoader.getProperties("httpdhistory.properties");
@@ -151,7 +147,7 @@ public class RebuildHistory {
 		log.info("Parsing churn data...");
 		new ChurnParser().parse(dbUtil, new File(datadir, props.getProperty("history.gitlog.churn")));
 	}
-	
+
 	private void computeChurn(DBUtil dbUtil, Properties props) throws Exception {
 		log.info("Computing recent churn...");
 		new RecentChurn().compute(dbUtil, Long.parseLong(props.getProperty("history.timeline.step")));
@@ -189,7 +185,7 @@ public class RebuildHistory {
 
 	private void visualizeVulnerabilitySeasons() throws Exception {
 		log.info("Building visualization of vulnerability seasons...");
-		//new ActiveVulnHeatMap().makeVisual(dbUtil, props);
+		// new ActiveVulnHeatMap().makeVisual(dbUtil, props);
 	}
 
 	private void buildAnalysis(DBUtil dbUtil, Properties props) throws FileNotFoundException, SQLException, IOException {
@@ -200,14 +196,15 @@ public class RebuildHistory {
 		log.info("Prediction analysis...");
 		new BayesianPrediction(dbUtil).run();
 	}
-	
+
 	private void loadReleaseHistory(DBUtil dbUtil, Properties props) throws Exception {
 		log.info("Loading HTTPD Release history into database...");
 		new ReleaseParser().parse(dbUtil, new File(datadir, props.getProperty("history.release")));
 	}
-	private void loadGitRelease(DBUtil dbUtil2)throws Exception  {
+
+	private void loadGitRelease(DBUtil dbUtil2) throws Exception {
 		log.info("Updating Gitlog Major Release...");
 		new GitRelease().load(dbUtil);
-		
+
 	}
 }
