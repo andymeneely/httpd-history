@@ -33,14 +33,23 @@ public class GitRelease {
 	 */
 	public void load(DBUtil dbUtil) throws Exception {
 		Connection conn = dbUtil.getConnection();
-		String query = "UPDATE gitlog g SET releaseVer = "
-				+ "(SELECT r1.releaseVer FROM releasehistory r1 WHERE r1.releasedate = " +
-				"(SELECT MIN(r2.releasedate) FROM releasehistory r2 WHERE r2.releasedate > g.authordate ))";	
-		
-		PreparedStatement ps = conn.prepareStatement(query);
-		log.debug("Executing major release update...");
-		ps.execute(); 		
-		conn.close();		
+		log.debug("Executing query...");
+		String query = "SELECT Commit,AuthorDate, "
+				+ "(SELECT ReleaseVer "
+				+ "            FROM ReleaseHistory rh "
+				+ "            WHERE rh.ReleaseDate=(SELECT MIN(ReleaseDate) FROM ReleaseHistory rh2 WHERE rh2.ReleaseDate>AuthorDate) "
+				+ "          ORDER BY rh.ReleaseDate ASC) ReleaseVer " + "    FROM GitLog g ";
+		ResultSet rs = conn.createStatement().executeQuery(query);
+		String update = "UPDATE gitlog SET releaseVer = ? WHERE Commit=?";
+		PreparedStatement psUpdate = conn.prepareStatement(update);
+		while (rs.next()) {
+			psUpdate.setString(1, rs.getString("ReleaseVer"));
+			psUpdate.setString(2, rs.getString("Commit"));
+			psUpdate.addBatch();
+		}
+		log.debug("Executing batch update...");
+		psUpdate.executeBatch();
+		conn.close();
 	}
-	
+
 }
