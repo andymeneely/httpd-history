@@ -44,25 +44,21 @@ public class RecentChurn {
 
 	public void compute(DBUtil dbUtil, long recentPeriod) throws Exception {
 		Connection conn = dbUtil.getConnection();
-		String query = "SELECT g.filepath, g.commit, r.authordate, (g.linesinserted+g.linesdeleted) as totalchurn, "
-				// Recent TotalChurn
-				+ "(SELECT SUM(g1.linesinserted+g1.linesdeleted) "
-				+ "FROM gitlogfiles g1 INNER JOIN repolog r1 ON g1.commit = r1.commit AND g1.filepath = r1.filepath "
-				+ "WHERE g1.filepath = g.filepath AND r1.authordate <= r.authordate AND (r.authordate - r1.authordate) <= ? ) as recentchurn, "
-				// Recent PercIntChurn
-				+ "(SELECT (SUM(g2.linesDeletedOther)/SUM(g2.linesdeleted) ) * 100 "
-				+ "FROM gitlogfiles g2 INNER JOIN repolog r2 ON g2.commit = r2.commit AND g2.filepath = r2.filepath "
-				+ "WHERE g2.filepath = g.filepath AND r2.authordate <= r.authordate AND (r.authordate - r2.authordate) <= ? ) as RecentPercIntChurn, "
-				// Recent AuthorsAffected
-				+ "(SELECT SUM(g3.AuthorsAffected) "
-				+ "FROM gitlogfiles g3 INNER JOIN repolog r3 ON g3.commit = r3.commit AND g3.filepath = r3.filepath "
-				+ "WHERE g3.filepath = g.filepath AND r3.authordate <= r.authordate AND (r.authordate - r3.authordate) <= ? ) as RecentAuthorsAffected, "
-				// Recent EffectiveAuthors
-				+ "(SELECT SUM(g4.EffectiveAuthors) "
-				+ "FROM gitlogfiles g4 INNER JOIN repolog r4 ON g4.commit = r4.commit AND g4.filepath = r4.filepath "
-				+ "WHERE g4.filepath = g.filepath AND r4.authordate <= r.authordate AND (r.authordate - r4.authordate) <= ? ) as RecentEffectiveAuthors "
-				//
-				+ "FROM gitlogfiles g INNER JOIN repolog r ON g.commit=r.commit AND g.filepath = r.filepath ";
+		String query = "SELECT r0.filepath, r0.commit, r0.authordate, (r0.linesinserted+r0.linesdeleted) as totalchurn, " 
+        		// Recent TotalChurn
+        		+ "(SELECT SUM(r1.linesinserted+r1.linesdeleted) "
+        		+ "FROM Repolog r1 WHERE r1.filepath = r0.filepath AND r1.authordate <= r0.authordate AND (r0.authordate - r1.authordate) <= ? ) as recentchurn,  "
+    			// Recent PercIntChurn
+       			+ "(SELECT (SUM(r2.linesDeletedOther)/SUM(r2.linesdeleted) ) * 100 "
+        		+ "FROM repolog r2 WHERE r2.filepath = r0.filepath AND r2.authordate <= r0.authordate AND (r0.authordate - r2.authordate) <= ? ) as RecentPercIntChurn, "
+        		// Recent AuthorsAffected
+        		+ "(SELECT SUM(r3.AuthorsAffected) "
+        		+ "FROM repolog r3 WHERE r3.filepath = r0.filepath AND r3.authordate <= r0.authordate AND (r0.authordate - r3.authordate) <= ? ) as RecentAuthorsAffected, "
+        		// Recent EffectiveAuthors
+        		+ "(SELECT SUM(r4.EffectiveAuthors) "
+        		+ "FROM repolog r4 WHERE r4.filepath = r0.filepath AND r4.authordate <= r0.authordate AND (r0.authordate - r4.authordate) <= ? ) as RecentEffectiveAuthors, "
+        		+ "FROM repolog r0  ";
+		
 		String upQuery = "UPDATE gitlogfiles SET recentChurn = ?, RecentPercIntChurn = ? WHERE commit = ? AND filepath = ?";
 		PreparedStatement ps = conn.prepareStatement(query);
 		PreparedStatement psUpdate = conn.prepareStatement(upQuery);

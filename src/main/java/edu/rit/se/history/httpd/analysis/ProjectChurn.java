@@ -13,10 +13,12 @@ public class ProjectChurn {
 		Connection conn = dbUtil.getConnection();
 
 		String query = "SELECT g.filepath, g.commit,  " 
-		  + "(SELECT SUM(g5.linesinserted+g5.linesdeleted)  "
-		  + "		FROM gitlogfiles g5 INNER JOIN repolog r5 ON g5.commit = r5.commit AND g5.filepath = r5.filepath "
-		  + "		WHERE r5.authordate <= r.authordate AND (r.authordate - r5.authordate) <= ? ) as projectChurn "
+		  // ProjectChurn
+        		+ "(SELECT SUM(r5.linesinserted+r5.linesdeleted)  "
+        		+ "FROM repolog r5 WHERE r5.authordate <= r0.authordate AND (r0.authordate - r5.authordate) <= ? ) as projectChurn "
+				//
 		  + "FROM gitlogfiles g INNER JOIN repolog r ON g.commit=r.commit AND g.filepath = r.filepath ";
+		
 		PreparedStatement ps = conn.prepareStatement(query);
 		log.debug("Executing query...");
 		ResultSet rs = ps.executeQuery();

@@ -25,9 +25,13 @@ import edu.rit.se.history.httpd.parse.CVEsParser;
 import edu.rit.se.history.httpd.parse.ChurnParser;
 import edu.rit.se.history.httpd.parse.FileListingParser;
 import edu.rit.se.history.httpd.parse.GitLogParser;
+import edu.rit.se.history.httpd.parse.GitRelease;
 import edu.rit.se.history.httpd.parse.GroundedTheoryResultsParser;
+import edu.rit.se.history.httpd.parse.ReleaseParser;
 import edu.rit.se.history.httpd.parse.SLOCParser;
 import edu.rit.se.history.httpd.scrapers.GoogleDocExport;
+
+
 
 public class RebuildHistory {
 	private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(RebuildHistory.class);
@@ -55,16 +59,18 @@ public class RebuildHistory {
 
 	public void run() throws Exception {
         //downloadGoogleDocs(props);
-		rebuildSchema(dbUtil);
-		loadGitLog(dbUtil, props);
-		filterGitLog(dbUtil);
-		loadCVEToGit(dbUtil, props);
-		optimizeTables(dbUtil);
-		loadChurn(dbUtil, props);
-		computeChurn(dbUtil,props);
+		//rebuildSchema(dbUtil);
+		//loadGitLog(dbUtil, props);
+		//filterGitLog(dbUtil);
+		//loadCVEToGit(dbUtil, props);
+		//optimizeTables(dbUtil);
+		//loadChurn(dbUtil, props);
+		//computeChurn(dbUtil,props);
+		loadReleaseHistory(dbUtil,props);
+		loadGitRelease(dbUtil);
 //		 loadFileListing(dbUtil, props);
 		// loadGroundedTheoryResults(dbUtil, props);
-		 loadCVEs(dbUtil, props);
+		 //loadCVEs(dbUtil, props);
 		//timeline(dbUtil, props);
 		verify(dbUtil);
 		visualizeVulnerabilitySeasons();
@@ -193,5 +199,15 @@ public class RebuildHistory {
 	private void prediction() throws Exception {
 		log.info("Prediction analysis...");
 		new BayesianPrediction(dbUtil).run();
+	}
+	
+	private void loadReleaseHistory(DBUtil dbUtil, Properties props) throws Exception {
+		log.info("Loading HTTPD Release history into database...");
+		new ReleaseParser().parse(dbUtil, new File(datadir, props.getProperty("history.release")));
+	}
+	private void loadGitRelease(DBUtil dbUtil2)throws Exception  {
+		log.info("Updating Gitlog Major Release...");
+		new GitRelease().load(dbUtil);
+		
 	}
 }
