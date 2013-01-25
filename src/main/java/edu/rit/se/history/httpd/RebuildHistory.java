@@ -19,13 +19,16 @@ import edu.rit.se.history.httpd.analysis.ProjectChurn;
 import edu.rit.se.history.httpd.analysis.RecentChurn;
 import edu.rit.se.history.httpd.analysis.TimelineTables;
 import edu.rit.se.history.httpd.dbverify.CodeChurnForAllCommits;
+import edu.rit.se.history.httpd.dbverify.ComponentForAllFilepath;
 import edu.rit.se.history.httpd.filter.FilepathFilters;
 import edu.rit.se.history.httpd.parse.CVEToGit;
 import edu.rit.se.history.httpd.parse.CVEsParser;
 import edu.rit.se.history.httpd.parse.ChurnParser;
+import edu.rit.se.history.httpd.parse.ComponentParser;
 import edu.rit.se.history.httpd.parse.FileListingParser;
 import edu.rit.se.history.httpd.parse.GitLogParser;
 import edu.rit.se.history.httpd.parse.GitRelease;
+import edu.rit.se.history.httpd.parse.GitlogfilesComponent;
 import edu.rit.se.history.httpd.parse.GroundedTheoryResultsParser;
 import edu.rit.se.history.httpd.parse.ReleaseParser;
 import edu.rit.se.history.httpd.parse.SLOCParser;
@@ -65,18 +68,21 @@ public class RebuildHistory {
 		loadChurn(dbUtil, props);
 		// computeChurn(dbUtil,props);
 		loadReleaseHistory(dbUtil,props);	
-		loadGitRelease(dbUtil);
+		//loadGitRelease(dbUtil);
+		//loadHttpdComponent(dbUtil,props);
+		//updateGitlogfilesComponent(dbUtil);
 		// loadFileListing(dbUtil, props);
 		// loadGroundedTheoryResults(dbUtil, props);
 		// loadCVEs(dbUtil, props);
 		// timeline(dbUtil, props);
-		//verify(dbUtil);
+		verify(dbUtil);
 		//visualizeVulnerabilitySeasons();
 		buildAnalysis(dbUtil, props);
 		// prediction();
 		log.info("Done.");
 	}
 
+	
 	private Properties setUpProps() throws IOException {
 		Properties props = PropsLoader.getProperties("httpdhistory.properties");
 		DOMConfigurator.configure("log4j.properties.xml");
@@ -180,6 +186,7 @@ public class RebuildHistory {
 		log.info("Running db verifications...");
 		DBVerifyRunner runner = new DBVerifyRunner(dbUtil);
 		runner.add(new CodeChurnForAllCommits());
+		runner.add(new ComponentForAllFilepath());
 		runner.run();
 	}
 
@@ -206,5 +213,17 @@ public class RebuildHistory {
 		log.info("Updating Gitlog Major Release...");
 		new GitRelease().load(dbUtil);
 
+	}
+	
+	private void loadHttpdComponent(DBUtil dbUtil2, Properties props) throws Exception {
+		log.info("Loading HTTPD Component into database...");
+		new ComponentParser().parse(dbUtil, new File(datadir, props.getProperty("history.component")));
+		
+	}
+	
+	private void updateGitlogfilesComponent(DBUtil dbUtil) throws Exception{
+		log.info("Updating Gitlogfiles Component...");
+		new GitlogfilesComponent().load(dbUtil);
+		
 	}
 }
