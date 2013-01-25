@@ -16,7 +16,7 @@ CREATE TABLE GitLog (
   Parent VARCHAR(81) NOT NULL,
   AuthorName varchar(45) default NULL,
   AuthorEmail varchar(45) default NULL,
-  AuthorDate TIMESTAMP,
+  AuthorDate TIMESTAMP default 0,
   Subject VARCHAR(5000) NOT NULL,
   Body longtext NOT NULL,
   NumSignedOffBys INTEGER DEFAULT 0,
@@ -60,7 +60,7 @@ CREATE TABLE GitChurnEffectiveAuthors(
 CREATE TABLE ReleaseHistory(
 	ID int(10) unsigned NOT NULL auto_increment,
 	ReleaseVer	VARCHAR(15) NOT NULL,
-	ReleaseDate TIMESTAMP NOT NULL,
+	ReleaseDate TIMESTAMP NOT NULL DEFAULT 0,
 	PRIMARY KEY  (ID)
 ) ENGINE=MyISAM;
 
@@ -117,7 +117,7 @@ CREATE TABLE Timeline(
   ID int(10) unsigned NOT NULL auto_increment,
   Filepath VARCHAR(50) NOT NULL,
   NumCVEs INTEGER NOT NULL,
-  AtTime TIMESTAMP NOT NULL,
+  AtTime TIMESTAMP NOT NULL default 0,
   CVEs TEXT NOT NULL,
   PRIMARY KEY  (`ID`)
 ) ENGINE=MyISAM;
