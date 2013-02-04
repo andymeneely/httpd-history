@@ -15,6 +15,7 @@ import org.chaoticbits.devactivity.testutil.dbverify.DBVerifyRunner;
 import com.google.gdata.util.ServiceException;
 
 import edu.rit.se.history.httpd.analysis.BayesianPrediction;
+import edu.rit.se.history.httpd.analysis.Counterparts;
 import edu.rit.se.history.httpd.analysis.ProjectChurn;
 import edu.rit.se.history.httpd.analysis.RecentChurn;
 import edu.rit.se.history.httpd.analysis.TimelineTables;
@@ -56,27 +57,34 @@ public class RebuildHistory {
 	}
 
 	public void run() throws Exception {
-		// downloadGoogleDocs(props);
-		rebuildSchema(dbUtil);
-		loadGitLog(dbUtil, props);
-		filterGitLog(dbUtil);
-		// loadCVEToGit(dbUtil, props);
-		optimizeTables(dbUtil);
-		loadChurn(dbUtil, props);
-		// computeChurn(dbUtil,props);
-		loadReleaseHistory(dbUtil, props);
-		loadGitRelease(dbUtil);
-		// loadFileListing(dbUtil, props);
-		// loadGroundedTheoryResults(dbUtil, props);
-		// loadCVEs(dbUtil, props);
-		// timeline(dbUtil, props);
-		verify(dbUtil);
-		visualizeVulnerabilitySeasons();
-		// buildAnalysis(dbUtil, props);
-		// prediction();
+//		downloadGoogleDocs(props);
+//		rebuildSchema(dbUtil);
+//		loadGitLog(dbUtil, props);
+//		filterGitLog(dbUtil);
+//		// loadCVEToGit(dbUtil, props);
+//		optimizeTables(dbUtil);
+//		loadChurn(dbUtil, props);
+//		// computeChurn(dbUtil,props);
+//		loadReleaseHistory(dbUtil, props);
+//		loadGitRelease(dbUtil);
+//		// loadFileListing(dbUtil, props);
+//		// loadGroundedTheoryResults(dbUtil, props);
+//		// loadCVEs(dbUtil, props);
+//		// timeline(dbUtil, props);
+//		verify(dbUtil);
+//		visualizeVulnerabilitySeasons();
+//		// buildAnalysis(dbUtil, props);
+//		// prediction();
+		generateCounterparts( dbUtil, props );
 		log.info("Done.");
 	}
 
+	private void generateCounterparts( DBUtil dbUtil, Properties props )
+			throws Exception {
+		log.info( "Generating counterparts.." );
+		new Counterparts(dbUtil,props).generate(); //.generate(1000)  //seeded
+	}
+	
 	private Properties setUpProps() throws IOException {
 		Properties props = PropsLoader.getProperties("httpdhistory.properties");
 		DOMConfigurator.configure("log4j.properties.xml");
