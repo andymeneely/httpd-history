@@ -20,12 +20,14 @@ public class Counterparts {
 	private static Logger log = Logger.getLogger(Counterparts.class);
 	private DBUtil db = null;
 	private Properties props = null;
+	private String basedir = null;
 	private int randSeed = 0;
 	
 	public Counterparts( DBUtil dbUtil, Properties props ) {
 		this.db = dbUtil;
 		this.props = props;
 		this.randSeed = new Random().nextInt();
+		this.basedir = props.getProperty("history.datadir");
 	}
 	
 	public void generate( int seed ) throws SQLException {
@@ -41,7 +43,6 @@ public class Counterparts {
 		
 		for ( int i = 0; i < numVCCs; i++ ) {
 			String[] commitAndFile = vccs[i].split(",");
-			log.info( commitAndFile[0] );
 			String ctrparts = joinCSV(
 					counterpartsForFile(commitAndFile[0], commitAndFile[1],
 							defaultMaxCtrparts ) );
@@ -64,7 +65,7 @@ public class Counterparts {
 	}
 	
 	private String[] getOkVCCsAndVulnFile() {
-		String pathToCSV = props.getProperty("history.cveintro.local");
+		String pathToCSV = basedir+props.getProperty("history.cveintro.local");
 		ArrayList<String> okVCCs = new ArrayList<String>();
 		CSVReader csvIn = null;
 		try {
