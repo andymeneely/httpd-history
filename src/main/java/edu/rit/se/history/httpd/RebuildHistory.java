@@ -15,8 +15,12 @@ import org.chaoticbits.devactivity.testutil.dbverify.DBVerifyRunner;
 import com.google.gdata.util.ServiceException;
 
 import edu.rit.se.history.httpd.analysis.BayesianPrediction;
+import edu.rit.se.history.httpd.analysis.ComponentChurn;
 import edu.rit.se.history.httpd.analysis.ProjectChurn;
+import edu.rit.se.history.httpd.analysis.RecentAuthorsAffected;
 import edu.rit.se.history.httpd.analysis.RecentChurn;
+import edu.rit.se.history.httpd.analysis.Peach;
+import edu.rit.se.history.httpd.analysis.RecentPIC;
 import edu.rit.se.history.httpd.analysis.TimelineTables;
 import edu.rit.se.history.httpd.dbverify.CodeChurnForAllCommits;
 import edu.rit.se.history.httpd.dbverify.ComponentForAllFilepath;
@@ -59,30 +63,30 @@ public class RebuildHistory {
 	}
 
 	public void run() throws Exception {
-		// downloadGoogleDocs(props);
+		downloadGoogleDocs(props);
 		rebuildSchema(dbUtil);
 		loadGitLog(dbUtil, props);
 		filterGitLog(dbUtil);
-		// loadCVEToGit(dbUtil, props);
+		loadCVEToGit(dbUtil, props);
 		optimizeTables(dbUtil);
 		loadChurn(dbUtil, props);
-		// computeChurn(dbUtil,props);
-		loadReleaseHistory(dbUtil,props);	
-		//loadGitRelease(dbUtil);
-		//loadHttpdComponent(dbUtil,props);
-		//updateGitlogfilesComponent(dbUtil);
-		// loadFileListing(dbUtil, props);
-		// loadGroundedTheoryResults(dbUtil, props);
-		// loadCVEs(dbUtil, props);
-		// timeline(dbUtil, props);
+		loadHttpdComponent(dbUtil, props);
+		computeChurn(dbUtil, props);
+		loadReleaseHistory(dbUtil, props);
+		loadGitRelease(dbUtil);
+		updateGitlogfilesComponent(dbUtil);
+		loadFileListing(dbUtil, props);
+		loadGroundedTheoryResults(dbUtil, props);
+		loadCVEs(dbUtil, props);
+		timeline(dbUtil, props);
 		verify(dbUtil);
-		//visualizeVulnerabilitySeasons();
+		log.debug(e);
+		visualizeVulnerabilitySeasons();
 		buildAnalysis(dbUtil, props);
-		// prediction();
+		prediction();
 		log.info("Done.");
 	}
 
-	
 	private Properties setUpProps() throws IOException {
 		Properties props = PropsLoader.getProperties("httpdhistory.properties");
 		DOMConfigurator.configure("log4j.properties.xml");
@@ -157,8 +161,17 @@ public class RebuildHistory {
 	private void computeChurn(DBUtil dbUtil, Properties props) throws Exception {
 		log.info("Computing recent churn...");
 		new RecentChurn().compute(dbUtil, Long.parseLong(props.getProperty("history.timeline.step")));
+		log.info("Computing recent PIC...");
+		new RecentPIC().compute(dbUtil, Long.parseLong(props.getProperty("history.timeline.step")));
+		log.info("Computing recent Authors Affected...");
+		new RecentAuthorsAffected().compute(dbUtil, Long.parseLong(props.getProperty("history.timeline.step")));
+		log.info("Computing PEACh metric...");
+		new Peach().compute(dbUtil, Long.parseLong(props.getProperty("history.timeline.step")));
+		log.info("Computing component churn...");
+		new ComponentChurn().compute(dbUtil, Long.parseLong(props.getProperty("history.timeline.step")));
 		log.info("Computing project churn...");
 		new ProjectChurn().compute(dbUtil, Long.parseLong(props.getProperty("history.timeline.step")));
+		
 	}
 
 	private void filterSVNLog(DBUtil dbUtil, Properties props) {
@@ -214,16 +227,16 @@ public class RebuildHistory {
 		new GitRelease().load(dbUtil);
 
 	}
-	
+
 	private void loadHttpdComponent(DBUtil dbUtil2, Properties props) throws Exception {
 		log.info("Loading HTTPD Component into database...");
 		new ComponentParser().parse(dbUtil, new File(datadir, props.getProperty("history.component")));
-		
+
 	}
-	
-	private void updateGitlogfilesComponent(DBUtil dbUtil) throws Exception{
+
+	private void updateGitlogfilesComponent(DBUtil dbUtil) throws Exception {
 		log.info("Updating Gitlogfiles Component...");
 		new GitlogfilesComponent().load(dbUtil);
-		
+
 	}
 }

@@ -67,6 +67,8 @@ public class ChurnParser {
 		ps.executeBatch();
 		log.debug("Executing batch insert...");
 		psAuthorAffected.executeBatch();
+		psEffectiveAuthors.executeBatch();
+		
 		conn.close();
 	}
 

@@ -38,7 +38,10 @@ CREATE TABLE GitLogFiles (
   AuthorsAffected int(10) unsigned,
   EffectiveAuthors int(10) unsigned,
   NewEffectiveAuthor ENUM('Yes', 'No'),
-  componentDesc varchar(40), 
+  component varchar(40), 
+  componentChurn int(10) unsigned,
+  PEACh int(10) unsigned,
+  RecentAuthorsAffected int(10) unsigned,
   PRIMARY KEY  (`ID`)
 ) ENGINE=MyISAM;
 
