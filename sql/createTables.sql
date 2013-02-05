@@ -131,5 +131,6 @@ CREATE TABLE Counterparts(
   ID int(10) unsigned NOT NULL auto_increment,
   Commit VARCHAR(40) NOT NULL,
   Filepath VARCHAR(100) NOT NULL,
-  Ctrparts VARCHAR(2100) NOT NULL
+  Ctrparts VARCHAR(2100) NOT NULL,
+  PRIMARY KEY  (`ID`)
 ) ENGINE=MyISAM;
