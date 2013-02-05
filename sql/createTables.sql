@@ -5,6 +5,7 @@ DROP TABLE IF EXISTS GitChurnAuthorsAffected;
 DROP TABLE IF EXISTS GitChurnEffectiveAuthors;
 DROP TABLE IF EXISTS Filepaths;
 DROP TABLE IF EXISTS ReleaseHistory;
+DROP TABLE IF EXISTS Components;
 DROP TABLE IF EXISTS CVE;
 DROP TABLE IF EXISTS CVEToGit;
 DROP TABLE IF EXISTS CVEGroundedTheory;
@@ -39,9 +40,9 @@ CREATE TABLE GitLogFiles (
   AuthorsAffected int(10) unsigned,
   EffectiveAuthors int(10) unsigned,
   NewEffectiveAuthor ENUM('Yes', 'No'),
-  component varchar(40), 
-  componentChurn int(10) unsigned,
-  PEACh int(10) unsigned,
+  Component varchar(40), 
+  ComponentChurn int(10) unsigned,
+  PEACh DOUBLE,
   RecentAuthorsAffected int(10) unsigned,
   PRIMARY KEY  (`ID`)
 ) ENGINE=MyISAM;
@@ -66,6 +67,12 @@ CREATE TABLE ReleaseHistory(
 	ID int(10) unsigned NOT NULL auto_increment,
 	ReleaseVer	VARCHAR(15) NOT NULL,
 	ReleaseDate TIMESTAMP NOT NULL DEFAULT 0,
+	PRIMARY KEY  (ID)
+) ENGINE=MyISAM;
+
+CREATE TABLE Components(
+	ID int(10) unsigned NOT NULL auto_increment,
+	ComponentPath VARCHAR(40),
 	PRIMARY KEY  (ID)
 ) ENGINE=MyISAM;
 
