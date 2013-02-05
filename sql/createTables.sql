@@ -9,6 +9,7 @@ DROP TABLE IF EXISTS CVE;
 DROP TABLE IF EXISTS CVEToGit;
 DROP TABLE IF EXISTS CVEGroundedTheory;
 DROP TABLE IF EXISTS Timeline;
+DROP TABLE IF EXISTS Counterparts;
 
 CREATE TABLE GitLog (
   ID int(10) unsigned NOT NULL auto_increment,
@@ -120,4 +121,11 @@ CREATE TABLE Timeline(
   AtTime TIMESTAMP NOT NULL default 0,
   CVEs TEXT NOT NULL,
   PRIMARY KEY  (`ID`)
+) ENGINE=MyISAM;
+
+CREATE TABLE Counterparts(
+  ID int(10) unsigned NOT NULL auto_increment,
+  Commit VARCHAR(40) NOT NULL,
+  Filepath VARCHAR(100) NOT NULL,
+  Ctrparts VARCHAR(2100) NOT NULL
 ) ENGINE=MyISAM;
