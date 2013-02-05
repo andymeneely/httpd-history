@@ -16,12 +16,24 @@ import org.chaoticbits.devactivity.DBUtil;
 
 import au.com.bytecode.opencsv.CSVReader;
 
+/**
+ * Get counterparts for all VCCs marked "OK" in 'HTTPD Vulnerability
+ * Introduction.csv'
+ * A counterpart is a commit that affected the vulnerable file from a VCC but
+ * has not been shown to have introduced a vulnerability itself. 
+ * 
+ * @author Matt Mokary
+ */
 public class Counterparts {
 	private static Logger log = Logger.getLogger(Counterparts.class);
+	
 	private DBUtil db = null;
 	private Properties props = null;
 	private String basedir = null;
-	private int randSeed = 0;
+	private String[] vccsAndFiles = null;
+	
+	private int randSeed;
+	private int defaultMaxCounterparts = 5;
 	
 	public Counterparts( DBUtil dbUtil, Properties props ) {
 		this.db = dbUtil;
@@ -36,25 +48,42 @@ public class Counterparts {
 	}
 	
 	public void generate() throws SQLException {
-		int defaultMaxCtrparts = 5;
-		String[] vccs = getOkVCCsAndVulnFile();
-		int numVCCs = vccs.length;
+		this.vccsAndFiles = getOkVCCsAndVulnFile();
+		int numVCCs = this.vccsAndFiles.length;
 		String[][] newRows = new String[numVCCs][2];
+		String[] commitAndFile = null;
 		
+		log.info( "Querying for counterparts.." );
 		for ( int i = 0; i < numVCCs; i++ ) {
-			String[] commitAndFile = vccs[i].split(",");
+			commitAndFile = this.vccsAndFiles[i].split(",");
 			String ctrparts = joinCSV(
 					counterpartsForFile(commitAndFile[0], commitAndFile[1],
-							defaultMaxCtrparts ) );
-			newRows[i][0] = vccs[i];
+							defaultMaxCounterparts ) );
+			newRows[i][0] = this.vccsAndFiles[i];
 			newRows[i][1] = ctrparts;
 		}
 		upsertNewRows( newRows );
 	}
 	
-	private void upsertNewRows( String[][] rows ) {
-		// TODO: upsert each row in `rows` into a table ("counterparts"?)
-		for ( String[] row : rows ) log.info( row[0] + ", " + row[1] );
+	private void upsertNewRows( String[][] rows ) throws SQLException {
+		String[] commitAndFile = null;
+		String upQuery = "INSERT INTO Counterparts (Commit,Filepath,Ctrparts)" +
+				" VALUES (?,?,?) ON DUPLICATE KEY UPDATE Ctrparts = ?;";
+		
+		Connection conn = db.getConnection();
+		PreparedStatement ps = conn.prepareStatement( upQuery );
+		for ( String[] row : rows ) {
+			commitAndFile = row[0].split(",");
+			ps.setString( 1, commitAndFile[0] );
+			ps.setString( 2, commitAndFile[1] );
+			ps.setString( 3, row[1] );
+			ps.setString( 4, row[1] );
+			ps.addBatch();
+		}
+		
+		log.info( "Executing upsert.." );
+		ps.executeBatch();
+		conn.close();
 	}
 	
 	private String joinCSV( String[] arr ) {
@@ -98,6 +127,7 @@ public class Counterparts {
 	
 	private String[] counterpartsForFile( String originalCommit, String file,
 			int numOfCounterparts ) throws SQLException {
+		
 		String selectClause = "SELECT Commit FROM gitlog";
 		String whereClause = String.format( "WHERE body LIKE '%%%s%%'", file );
 		String query = String.format( "%s %s;", selectClause, whereClause );
@@ -107,29 +137,43 @@ public class Counterparts {
 		ResultSet results = prep.executeQuery();
 		
 		results.last();
-		int numRows = results.getRow() - 1, index = 0;
+		int numRows = results.getRow() - 1;
 		results.beforeFirst();
 		
-		String[] counterparts = new String[numRows];
+		ArrayList<String> counterparts = new ArrayList<String>();
 		String commit = null;
 		
 		while( results.next() ) {
 			commit = results.getString("Commit");
-			if ( !commit.equals( originalCommit ) ) {
-				counterparts[index] = commit;
-				index++;
+			if ( !commit.equals( originalCommit ) && !isVCC(commit) ) {
+				counterparts.add( commit );
 			}
 		}
 		conn.close();
 		
 		numOfCounterparts = numOfCounterparts > numRows ?
 				numRows : numOfCounterparts;
+		
 		return selectNRandom( counterparts, numOfCounterparts );
 	}
 	
-	private String[] selectNRandom( String[] arr, int num ) {
-		String[] result = new String[num];
-		result = selNRandRec( new ArrayList<String>(Arrays.asList(arr)), num,
+	private boolean isVCC( String commit ) {
+		for ( String commitAndFile : this.vccsAndFiles )
+			if ( commitAndFile.split(",")[0].equals(commit) )
+				return true;
+		return false;
+	}
+	
+	private String[] selectNRandom( ArrayList<String> arr, int num ) {
+		String[] result = null;
+		try {
+			result = new String[num];
+		} catch ( java.lang.NegativeArraySizeException e ) {
+			log.error( "Table 'gitlog' is empty; cannot get counterparts. " +
+					"Make sure loadGitlog is being called." );
+			return null;
+		}
+		result = selNRandRec( arr, num,
 				new Random( this.randSeed ) ).toArray(result);
 		return result;
 	}
