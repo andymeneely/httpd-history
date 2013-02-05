@@ -5,35 +5,26 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.Scanner;
 
-
 import org.chaoticbits.devactivity.DBUtil;
 
 public class ComponentParser {
 	private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ComponentParser.class);
-	
-	public ComponentParser() {
-	}
 
 	public void parse(DBUtil dbUtil, File compLog) throws Exception {
 		Connection conn = dbUtil.getConnection();
-		PreparedStatement ps = conn
-				.prepareStatement("INSERT INTO HttpdComponent(componentpath) VALUES (?)");
+		PreparedStatement ps = conn.prepareStatement("INSERT INTO Components(ComponentPath) VALUES (?)");
 
 		Scanner scanner = new Scanner(compLog);
 		log.debug("Scanning Component log...");
-
-		String compPath;
-		String compDesc; //future
-		
 
 		while (scanner.hasNextLine()) {
 			String line = scanner.nextLine();
 			if (!line.startsWith("#")) { // ignore comments
 				String split[] = line.split(",");
-				compPath = split[0];
-				//compDesc = split[1]; //may be implemented in the future
+				String compPath = split[0];
+				// compDesc = split[1]; //may be implemented in the future
 				ps.setString(1, compPath);
-				//ps.setString(2, compDesc); //may be implemented in the future
+				// ps.setString(2, compDesc); //may be implemented in the future
 				ps.addBatch();
 			}
 		}
@@ -42,5 +33,5 @@ public class ComponentParser {
 		scanner.close();
 		conn.close();
 	}
-	
+
 }
