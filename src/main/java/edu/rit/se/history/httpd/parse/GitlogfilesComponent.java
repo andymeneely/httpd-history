@@ -8,32 +8,28 @@ import org.chaoticbits.devactivity.DBUtil;
 
 public class GitlogfilesComponent {
 	private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GitlogfilesComponent.class);
-	
-	public GitlogfilesComponent() {
 
-	}
-
-	public void load(DBUtil dbUtil) throws Exception {
+	public void update(DBUtil dbUtil) throws Exception {
 		Connection conn = dbUtil.getConnection();
-		
-		String query = "select commit, filepath, componentpath from gitlogfiles" +
-				" left outer join httpdcomponent on filepath like concat(componentpath,'%')";
-		String upQuery = "UPDATE Gitlogfiles SET component = ? WHERE commit = ? AND filepath = ?";
-		
+
+		String query = "SELECT Commit, Filepath, ComponentPath from GitLogFiles "
+				+ "LEFT OUTER JOIN Components on Filepath LIKE CONCAT(ComponentPath,'%')";
+		log.debug("Executing query...");
 		ResultSet rs = conn.createStatement().executeQuery(query);
-		PreparedStatement ps = conn.prepareStatement(upQuery);
-		
-		
-		while (rs.next()){
-			ps.setString(1, rs.getString("componentpath"));
-			ps.setString(2,rs.getString("commit"));
-			ps.setString(3,rs.getString("filepath"));
-			ps.addBatch();			
+
+		String upQuery = "UPDATE GitLogFiles SET Component = ? WHERE Commit = ? AND Filepath = ?";
+		PreparedStatement psUpdate = conn.prepareStatement(upQuery);
+
+		while (rs.next()) {
+			psUpdate.setString(1, rs.getString("ComponentPath"));
+			psUpdate.setString(2, rs.getString("Commit"));
+			psUpdate.setString(3, rs.getString("Filepath"));
+			psUpdate.addBatch();
 		}
-		
-		log.debug("Executing Gitlogfile Component batch update...");
-		ps.executeBatch();
-				
+
+		log.debug("Executing batch update...");
+		psUpdate.executeBatch();
+
 	}
-	
+
 }

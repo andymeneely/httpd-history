@@ -15,7 +15,7 @@ CREATE INDEX GitLogFilesComponent USING BTREE ON GitLogFiles(component);
 CREATE INDEX CVEToGitIndex USING BTREE ON CVEToGit(CVE,Filepath);
 CREATE INDEX CVEToGitCommitIntroduced USING BTREE ON CVEToGit(CommitIntroduced);
 CREATE INDEX CVEToGitCommitFixed USING BTREE ON CVEToGit(CommitFixed);
-CREATE INDEX ComponentPathIndex USING BTREE ON HttpdComponent(componentDesc); 
+CREATE INDEX ComponentPathIndex USING BTREE ON Components(ComponentPath); 
 
 OPTIMIZE TABLE GitLog;
 OPTIMIZE TABLE GitLogFiles;
@@ -25,5 +25,5 @@ OPTIMIZE TABLE CVEToGit;
 OPTIMIZE TABLE CVEGroundedTheory;
 OPTIMIZE TABLE GitChurnAuthorsAffected;
 OPTIMIZE TABLE GitChurnEffectiveAuthors;
-OPTIMIZE TABLE HttpdComponent;
+OPTIMIZE TABLE Components;
 
