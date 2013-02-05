@@ -57,22 +57,22 @@ public class RebuildHistory {
 	}
 
 	public void run() throws Exception {
-		downloadGoogleDocs(props);
+		// downloadGoogleDocs(props);
 		rebuildSchema(dbUtil);
 		loadGitLog(dbUtil, props);
 		filterGitLog(dbUtil);
 		// loadCVEToGit(dbUtil, props);
 		optimizeTables(dbUtil);
-		loadChurn(dbUtil, props);
+		// loadChurn(dbUtil, props);
 		// computeChurn(dbUtil,props);
-		loadReleaseHistory(dbUtil, props);
-		loadGitRelease(dbUtil);
+		// loadReleaseHistory(dbUtil, props);
+		// loadGitRelease(dbUtil);
 		// loadFileListing(dbUtil, props);
 		// loadGroundedTheoryResults(dbUtil, props);
 		// loadCVEs(dbUtil, props);
 		// timeline(dbUtil, props);
-		verify(dbUtil);
-		visualizeVulnerabilitySeasons();
+		// verify(dbUtil);
+		// visualizeVulnerabilitySeasons();
 		// buildAnalysis(dbUtil, props);
 		// prediction();
 		generateCounterparts( dbUtil, props );
