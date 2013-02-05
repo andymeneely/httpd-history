@@ -33,20 +33,72 @@ public class Counterparts {
 	private String[] vccsAndFiles = null;
 	
 	private int randSeed;
-	private int defaultMaxCounterparts = 5;
+	private int maxCounterparts = 5;
 	
-	public Counterparts( DBUtil dbUtil, Properties props ) {
+	// initialize with a specified number of counterparts to generate
+	public Counterparts( DBUtil dbUtil, Properties props, int numCtrparts ) {
 		this.db = dbUtil;
 		this.props = props;
 		this.randSeed = new Random().nextInt();
 		this.basedir = props.getProperty("history.datadir");
+		this.maxCounterparts = numCtrparts;
 	}
 	
+	// default to 5 counterparts per VCC
+	public Counterparts( DBUtil dbUtil, Properties props ) {
+		this( dbUtil, props, 5 );
+	}
+	
+	/**
+	 * Generate counterparts for all OK'd VCCs using the given seed.
+	 * 
+	 * @param seed Seed for java.util.Random, used in picking counterparts
+	 * @throws SQLException
+	 */
 	public void generate( int seed ) throws SQLException {
 		this.randSeed = seed;
 		generate();
 	}
 	
+	/**
+	 * Generate (new) counterparts for the given VCC, using the given seed.
+	 * 
+	 * @param commit VCC for which to generate (new) counterparts
+	 * @param seed Seed for java.util.Random, using in picking counterparts
+	 * @throws SQLException
+	 */
+	public void generate( String commit, int seed ) throws SQLException {
+		this.randSeed = seed;
+		generate( commit );
+	}
+	
+	/**
+	 * Generate (new) counterparts for the given VCC using a random seed.
+	 * 
+	 * @param commit VCC for which to generate (new) counterparts
+	 * @throws SQLException
+	 */
+	public void generate( String commit ) throws SQLException {
+		this.vccsAndFiles = getOkVCCsAndVulnFile();
+		if ( isVCC(commit) ) {
+			String file = null;
+			String ctrparts = joinCSV(
+					counterpartsForFile(commit, getFileForCommit(commit),
+							maxCounterparts ) );
+			String[][] newRows = new String[1][2];
+			newRows[0][0] = commit + "," + file;
+			newRows[0][1] = ctrparts;
+			upsertNewRows( newRows );
+		} else {
+			log.error( String.format("Commit %s is not an OK'd VCC", commit) );
+		}
+	}
+	
+	/**
+	 * Generate (new) counterparts for all OK'd VCCs using a random seed.
+	 * 
+	 * @throws SQLException
+	 */
 	public void generate() throws SQLException {
 		this.vccsAndFiles = getOkVCCsAndVulnFile();
 		int numVCCs = this.vccsAndFiles.length;
@@ -58,7 +110,7 @@ public class Counterparts {
 			commitAndFile = this.vccsAndFiles[i].split(",");
 			String ctrparts = joinCSV(
 					counterpartsForFile(commitAndFile[0], commitAndFile[1],
-							defaultMaxCounterparts ) );
+							maxCounterparts ) );
 			newRows[i][0] = this.vccsAndFiles[i];
 			newRows[i][1] = ctrparts;
 		}
@@ -163,6 +215,15 @@ public class Counterparts {
 				return true;
 		return false;
 	}
+	
+	// precondition: `commit` is an OK'd VCC in this.vccsAndFiles
+	private String getFileForCommit( String commit ) {
+		for ( String commitAndFile : this.vccsAndFiles )
+			if ( commitAndFile.split(",")[0].equals(commit) )
+				return commitAndFile.split(",")[1];
+		return null;
+	}
+	
 	
 	private String[] selectNRandom( ArrayList<String> arr, int num ) {
 		String[] result = null;

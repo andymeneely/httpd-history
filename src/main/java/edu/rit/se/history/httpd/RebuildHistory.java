@@ -58,11 +58,11 @@ public class RebuildHistory {
 
 	public void run() throws Exception {
 		// downloadGoogleDocs(props);
-		rebuildSchema(dbUtil);
-		loadGitLog(dbUtil, props);
-		filterGitLog(dbUtil);
-		// loadCVEToGit(dbUtil, props);
-		optimizeTables(dbUtil);
+//		rebuildSchema(dbUtil);
+//		loadGitLog(dbUtil, props);
+//		filterGitLog(dbUtil);
+//		// loadCVEToGit(dbUtil, props);
+//		optimizeTables(dbUtil);
 		// loadChurn(dbUtil, props);
 		// computeChurn(dbUtil,props);
 		// loadReleaseHistory(dbUtil, props);
