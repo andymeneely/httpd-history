@@ -31,7 +31,6 @@ import edu.rit.se.history.httpd.parse.ComponentParser;
 import edu.rit.se.history.httpd.parse.GitLogParser;
 import edu.rit.se.history.httpd.parse.GitRelease;
 import edu.rit.se.history.httpd.parse.GitlogfilesComponent;
-import edu.rit.se.history.httpd.parse.GroundedTheoryResultsParser;
 import edu.rit.se.history.httpd.parse.ReleaseParser;
 import edu.rit.se.history.httpd.scrapers.GoogleDocExport;
 
@@ -63,27 +62,27 @@ public class RebuildHistory {
 		/* --- DOWNLOAD STUFF --- */
 		// downloadGoogleDocs(props); //Nobody but Andy really needs to run this
 		/* --- CLEAN EVERYTHING --- */
-		rebuildSchema(dbUtil);
+		rebuildSchema();
 		/* --- LOAD STUFF --- */
 		// loadCVEs(dbUtil, props);
-		loadGitLog(dbUtil, props);
-		loadComponents(dbUtil, props);
-		loadGitRelease(dbUtil);
-		loadReleaseHistory(dbUtil, props);
+		loadGitLog();
+		loadComponents();
+		loadGitRelease();
+		loadReleaseHistory();
 		// loadCVEToGit(dbUtil, props);
 		/* --- OPTIMIZE & INDEX TABLES --- */
-		optimizeTables(dbUtil);
+		optimizeTables();
 		/* --- COMPUTE & UPDATE TABLES --- */
-		updateChurn(dbUtil, props);
-		updateComponent(dbUtil);
-		computeRecentChurn(dbUtil, props);
+		updateChurn();
+		updateComponent();
+		computeRecentChurn();
 		/* --- VERIFY --- */
-		verify(dbUtil);
+		verify();
 		/* --- ANALYZE --- */
-		timeline(dbUtil, props);
+		timeline();
 		visualizeVulnerabilitySeasons();
-		generateCounterparts(dbUtil, props);
-		buildAnalysis(dbUtil, props);
+		generateCounterparts();
+		buildAnalysis();
 		// prediction();
 		log.info("Done.");
 	}
@@ -116,24 +115,24 @@ public class RebuildHistory {
 		export.downloadCSVs(props.getProperty("google.username"), props.getProperty("google.password"));
 	}
 
-	private void rebuildSchema(DBUtil dbUtil) throws FileNotFoundException, SQLException, IOException {
+	private void rebuildSchema() throws FileNotFoundException, SQLException, IOException {
 		log.info("Rebuilding database schema...");
 		dbUtil.executeSQLFile("sql/createTables.sql");
 	}
 
-	private void loadGitLog(DBUtil dbUtil, Properties props) throws Exception {
+	private void loadGitLog() throws Exception {
 		log.info("Loading the Git Log into database...");
 		new GitLogParser().parse(dbUtil, new File(datadir, props.getProperty("history.gitlog")));
 		log.info("Filtering the git log...");
 		dbUtil.executeSQLFile("sql/filter-gitlog.sql");
 	}
 
-	private void loadReleaseHistory(DBUtil dbUtil, Properties props) throws Exception {
+	private void loadReleaseHistory() throws Exception {
 		log.info("Loading release history...");
 		new ReleaseParser().parse(dbUtil, new File(datadir, props.getProperty("history.release")));
 	}
 
-	private void loadGitRelease(DBUtil dbUtil2) throws Exception {
+	private void loadGitRelease() throws Exception {
 		log.info("Updating major releases according to dates...");
 		new GitRelease().load(dbUtil);
 	}
@@ -143,12 +142,12 @@ public class RebuildHistory {
 		new CVEsParser().parse(dbUtil, new File(datadir, props.getProperty("history.cves.local")));
 	}
 
-	private void updateChurn(DBUtil dbUtil, Properties props) throws Exception {
+	private void updateChurn() throws Exception {
 		log.info("Parsing churn data...");
 		new ChurnParser().parse(dbUtil, new File(datadir, props.getProperty("history.gitlog.churn")));
 	}
 
-	private void computeRecentChurn(DBUtil dbUtil, Properties props) throws Exception {
+	private void computeRecentChurn() throws Exception {
 		log.info("Computing recent churn...");
 		new RecentChurn().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
 		log.info("Computing recent PIC...");
@@ -169,19 +168,19 @@ public class RebuildHistory {
 		new CVEToGit().parse(dbUtil, new File(datadir, props.getProperty("history.cveintro.local")));
 	}
 
-	private void optimizeTables(DBUtil dbUtil) throws FileNotFoundException, SQLException, IOException {
+	private void optimizeTables() throws FileNotFoundException, SQLException, IOException {
 		log.info("Optimizing tables...");
 		dbUtil.executeSQLFile("sql/optimizeTables.sql");
 	}
 
-	private void timeline(DBUtil dbUtil, Properties props) throws Exception {
+	private void timeline() throws Exception {
 		log.info("Constructing file-level timelines...");
 		new TimelineTables(dbUtil).build(Timestamp.valueOf(props.getProperty("history.timeline.start")),
 				Timestamp.valueOf(props.getProperty("history.timeline.stop")),
 				Long.valueOf(props.getProperty("history.timeline.step")));
 	}
 
-	private void verify(DBUtil dbUtil) throws Exception {
+	private void verify() throws Exception {
 		log.info("Running db verifications...");
 		DBVerifyRunner runner = new DBVerifyRunner(dbUtil);
 		runner.add(new CodeChurnForAllCommits());
@@ -194,13 +193,13 @@ public class RebuildHistory {
 		// new ActiveVulnHeatMap().makeVisual(dbUtil, props);
 	}
 
-	private void generateCounterparts(DBUtil dbUtil, Properties props) throws Exception {
+	private void generateCounterparts() throws Exception {
 		log.info("Generating counterparts..");
 		new Counterparts(dbUtil, new File(datadir, props.getProperty("history.cveintro.local")), Integer.valueOf(props
 				.getProperty("history.counterparts.num"))).generate(); // .generate(1000) //seeded
 	}
 
-	private void buildAnalysis(DBUtil dbUtil, Properties props) throws FileNotFoundException, SQLException, IOException {
+	private void buildAnalysis() throws FileNotFoundException, SQLException, IOException {
 		dbUtil.executeSQLFile("sql/analysis.sql");
 	}
 
@@ -209,12 +208,12 @@ public class RebuildHistory {
 		new BayesianPrediction(dbUtil).run();
 	}
 
-	private void loadComponents(DBUtil dbUtil2, Properties props) throws Exception {
+	private void loadComponents() throws Exception {
 		log.info("Loading Component into database...");
 		new ComponentParser().parse(dbUtil, new File(datadir, props.getProperty("history.component.paths")));
 	}
 
-	private void updateComponent(DBUtil dbUtil) throws Exception {
+	private void updateComponent() throws Exception {
 		log.info("Updating Gitlogfiles Component...");
 		new GitlogfilesComponent().update(dbUtil);
 
