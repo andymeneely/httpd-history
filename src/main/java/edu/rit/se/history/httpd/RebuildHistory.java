@@ -65,6 +65,7 @@ public class RebuildHistory {
 		rebuildSchema();
 		/* --- LOAD STUFF --- */
 		// loadCVEs(dbUtil, props);
+		loadCVEToGit();
 		loadGitLog();
 		loadComponents();
 		loadGitRelease();
@@ -158,12 +159,12 @@ public class RebuildHistory {
 		new Peach().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
 		log.info("Computing component churn...");
 		new ComponentChurn().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
-		// log.info("Computing project churn...");
+		// log.info("Computing project churn..."); /* Not needed for this paper -Andy*/
 		// new ProjectChurn().compute(dbUtil,
 		// Long.parseLong(props.getProperty("history.churn.recent.step")));
 	}
 
-	private void loadCVEToGit(DBUtil dbUtil, Properties props) throws Exception {
+	private void loadCVEToGit() throws Exception {
 		log.info("Parsing CVE to Git tracings...");
 		new CVEToGit().parse(dbUtil, new File(datadir, props.getProperty("history.cveintro.local")));
 	}
