@@ -24,8 +24,6 @@ history.gitlog=httpd-gitlog.txt
 
 history.gitlog.churn=httpd-churnlog.txt
 
-history.filelisting.v22=httpd-2.2.0-files.txt
-
 history.release=httpd-release-history.txt
 
 # Parsed by java.sql.Timestamp.valueOf()
@@ -41,8 +39,16 @@ history.timeline.step=2592000000
 # The time back to be considered "recent"
 history.churn.recent.step=2592000000
 
-history.sloc.v5=sloc5.5.csv
+# The SLOC for each file at each revision, to be used with relative 
+history.churn.loc_at_rev=httpd-full-gitlog-loc.txt
 
+# The file that contains the path prefixes of the different components
+history.component.paths=httpd-component-paths.txt
+
+# The number of counterparts in our counterpart analysis
+history.counterparts.num=5
+
+# Database connection properties
 history.dbuser=root
 history.dbpw=root
 history.dburl=jdbc:mysql://127.0.0.1:3306/httpdhistory
