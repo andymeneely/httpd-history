@@ -13,7 +13,7 @@ public class RecentPIC {
 		Connection conn = dbUtil.getConnection();
 		String query = "SELECT r0.filepath, r0.commit, r0.authordate, (r0.linesinserted+r0.linesdeleted) as totalchurn, " 
      			// Recent PercIntChurn
-       			+ "(SELECT (SUM(r2.linesDeletedOther)/SUM(r2.linesdeleted) ) * 100 "
+       			+ "SELECT (SUM(r2.linesDeletedOther)/SUM(r2.linesdeleted) "
         		+ "FROM repolog r2 WHERE r2.filepath = r0.filepath AND r2.authordate <= r0.authordate AND DATEDIFF(r0.authordate, r2.authordate) <= ? ) as RecentPercIntChurn "
         		+ "FROM repolog r0  ";
 		
@@ -26,7 +26,7 @@ public class RecentPIC {
 		ResultSet rs = ps.executeQuery();
 		log.debug("Processing results...");
 		while (rs.next()) {
-			psUpdate.setInt(1, rs.getInt("recentPercIntChurn"));
+			psUpdate.setDouble(1, rs.getDouble("recentPercIntChurn"));
 			psUpdate.setString(2, rs.getString("commit"));
 			psUpdate.setString(3, rs.getString("filepath"));
 			psUpdate.addBatch();

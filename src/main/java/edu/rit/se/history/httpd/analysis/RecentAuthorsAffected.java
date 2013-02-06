@@ -11,12 +11,12 @@ public class RecentAuthorsAffected {
 
 	public void compute(DBUtil dbUtil, long recentPeriod) throws Exception {
 		Connection conn = dbUtil.getConnection();
-		String query = "SELECT g.filepath, g.commit,  "      	        		
+		String query = "SELECT r.filepath, r.commit,  "      	        		
 			    + "(SELECT COUNT(DISTINCT authoraffected) FROM gitchurnauthorsaffected a " 
-			    + "INNER JOIN Gitlog _l ON a.commit = _l.commit "
-			    + "WHERE _l.authordate <= l.authordate AND DATEDIFF(l.authordate, _l.authordate) <= ? "
-			    + "GROUP BY a.filepath HAVING a.filepath = g.filepath ) AS RecentAuthorsAffected "
-			+ "FROM gitlogfiles g INNER JOIN gitlog l ON l.commit = g.commit ";
+			    + "INNER JOIN repolog _r ON a.commit = _r.commit "
+			    + "WHERE _r.authordate <= r.authordate AND DATEDIFF(r.authordate, _r.authordate) <= ? "
+			    + "GROUP BY a.filepath HAVING a.filepath = r.filepath ) AS RecentAuthorsAffected "
+			+ "FROM Repolog r";
 		
 		String upQuery = "UPDATE GitLogFiles SET RecentAuthorsAffected = ? WHERE commit = ? AND filepath = ?";
 		PreparedStatement ps = conn.prepareStatement(query);
