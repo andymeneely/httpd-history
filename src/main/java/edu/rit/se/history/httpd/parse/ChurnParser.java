@@ -65,8 +65,9 @@ public class ChurnParser {
 		scanner.close();
 		log.debug("Executing batch update...");
 		ps.executeBatch();
-		log.debug("Executing batch insert...");
+		log.debug("Executing batch insert for authors affected...");
 		psAuthorAffected.executeBatch();
+		log.debug("Executing batch insert for effective authors...");
 		psEffectiveAuthors.executeBatch();
 		
 		conn.close();
