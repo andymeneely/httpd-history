@@ -62,14 +62,14 @@ public class RebuildHistory {
 		/* --- DOWNLOAD STUFF --- */
 		// downloadGoogleDocs(props); //Nobody but Andy really needs to run this
 		/* --- CLEAN EVERYTHING --- */
-		rebuildSchema();
+//		rebuildSchema();
 		/* --- LOAD STUFF --- */
 		// loadCVEs(dbUtil, props);
 		loadCVEToGit();
 		loadGitLog();
 		loadComponents();
 		loadGitRelease();
-		loadReleaseHistory();
+//		loadReleaseHistory();
 		// loadCVEToGit(dbUtil, props);
 		/* --- OPTIMIZE & INDEX TABLES --- */
 		optimizeTables();
@@ -78,12 +78,12 @@ public class RebuildHistory {
 		updateComponent();
 		//computeRecentChurn();
 		/* --- VERIFY --- */
-		verify();
+//		verify();
 		/* --- ANALYZE --- */
-		timeline();
+//		timeline();
 		visualizeVulnerabilitySeasons();
 		generateCounterparts();
-		buildAnalysis();
+//		buildAnalysis();
 		// prediction();
 		log.info("Done.");
 	}
@@ -197,8 +197,7 @@ public class RebuildHistory {
 	private void generateCounterparts() throws Exception {
 		log.info("Generating counterparts..");
 		int seed = Integer.valueOf(props.getProperty("history.counterparts.seed"));
-		new Counterparts(dbUtil, new File(datadir, props.getProperty("history.cveintro.local")), Integer.valueOf(props
-				.getProperty("history.counterparts.num"))).generate(seed);
+		new Counterparts(dbUtil, Integer.valueOf(props.getProperty("history.counterparts.num"))).generate(seed);
 	}
 
 	private void buildAnalysis() throws FileNotFoundException, SQLException, IOException {
