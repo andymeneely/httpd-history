@@ -90,7 +90,7 @@ public class Counterparts {
 		this.vccsAndFiles = getVCCsAndVulnFile();
 		ArrayList<String[]> newRows = new ArrayList<String[]>();
 
-		log.info("Querying for counterparts..");
+		log.debug("Querying for counterparts..");
 		for (String[] vccAndFile : this.vccsAndFiles) {
 			String[] ctrparts = counterpartsForFile(vccAndFile[0], vccAndFile[1], maxCounterparts);
 			for (String ctrpart : ctrparts) {
@@ -115,7 +115,7 @@ public class Counterparts {
 			ps.addBatch();
 		}
 
-		log.info("Executing upsert..");
+		log.debug("Executing upsert..");
 		ps.executeBatch();
 		conn.close();
 	}

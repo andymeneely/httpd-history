@@ -22,7 +22,7 @@ public class ChurnParser {
 		Connection conn = dbUtil.getConnection();
 		PreparedStatement ps = conn.prepareStatement("UPDATE GitLogFiles SET "
 				+ "LinesInserted=?, LinesDeleted=?, LinesDeletedSelf=?, LinesDeletedOther=?, "
-				+ "AuthorsAffected=?, EffectiveAuthors=?, NewEffectiveAuthor=? WHERE Commit=? AND Filepath=?");
+				+ "NumAuthorsAffected=?, NumEffectiveAuthors=?, NewEffectiveAuthor=? WHERE Commit=? AND Filepath=?");
 		PreparedStatement psAuthorAffected = conn
 				.prepareStatement("INSERT INTO GitChurnAuthorsAffected(Commit, Filepath, AuthorAffected) VALUES (?,?,?) ");
 		PreparedStatement psEffectiveAuthors = conn
@@ -44,18 +44,18 @@ public class ChurnParser {
 			Integer linesDeleted = parseInt(scanner.nextLine(), "Lines Deleted:\t");
 			Integer linesDeletedSelf = parseInt(scanner.nextLine(), "Lines Deleted, self:\t");
 			Integer linesDeletedOther = parseInt(scanner.nextLine(), "Lines Deleted, other:\t");
-			Integer authorsAffected = parseInt(scanner.nextLine(), "Number of Authors Affected:\t");
-			parseAuthorsAffected(psAuthorAffected, scanner.nextLine(), commit, filepath);
+			Integer numAuthorsAffected = parseInt(scanner.nextLine(), "Number of Authors Affected:\t");
+			parseAuthorsAffected(psAuthorAffected, numAuthorsAffected, scanner.nextLine(), commit, filepath);
 			Integer effectiveAuthors = parseInt(scanner.nextLine(), "Number of Effective Authors:\t");
 			parseEffectiveAuthors(psEffectiveAuthors, scanner.nextLine(), commit, filepath);
 			String isNewEffectiveAuthor = scanner.nextLine().substring("New effective author?\t".length() + 1);
-			scanner.nextLine(); //skip the empty line
+			scanner.nextLine(); // skip the empty line
 			int i = 1;
 			ps.setInt(i++, linesInserted);
 			ps.setInt(i++, linesDeleted);
 			ps.setInt(i++, linesDeletedSelf);
 			ps.setInt(i++, linesDeletedOther);
-			ps.setInt(i++, authorsAffected);
+			ps.setInt(i++, numAuthorsAffected);
 			ps.setInt(i++, effectiveAuthors);
 			ps.setString(i++, isNewEffectiveAuthor);
 			ps.setString(i++, commit);
@@ -65,10 +65,11 @@ public class ChurnParser {
 		scanner.close();
 		log.debug("Executing batch update...");
 		ps.executeBatch();
-		log.debug("Executing batch insert...");
+		log.debug("Executing batch insert for authors affected...");
 		psAuthorAffected.executeBatch();
+		log.debug("Executing batch insert for effective authors...");
 		psEffectiveAuthors.executeBatch();
-		
+
 		conn.close();
 	}
 
@@ -76,28 +77,28 @@ public class ChurnParser {
 		return line.matches("[0-9a-f]{40}");
 	}
 
-	private String parseAuthorsAffected(PreparedStatement ps, String nextLine, String commit, String filepath)
-			throws SQLException {
-		String[] authorsAffected = nextLine.split("\t");
-		for (String authorAffected : authorsAffected) {
-			ps.setString(1, commit);
-			ps.setString(2, filepath);
-			ps.setString(3, authorAffected);
-			ps.addBatch();
+	private void parseAuthorsAffected(PreparedStatement ps, Integer numAuthorsAffected, String nextLine, String commit,
+			String filepath) throws SQLException {
+		if (numAuthorsAffected > 0) {
+			String[] authorsAffected = nextLine.substring("Authors Affected:\t".length()).split("\t");
+			for (String authorAffected : authorsAffected) {
+				ps.setString(1, commit);
+				ps.setString(2, filepath);
+				ps.setString(3, authorAffected);
+				ps.addBatch();
+			}
 		}
-		return null;
 	}
 
-	private String parseEffectiveAuthors(PreparedStatement ps, String nextLine, String commit, String filepath)
+	private void parseEffectiveAuthors(PreparedStatement ps, String nextLine, String commit, String filepath)
 			throws SQLException {
-		String[] effectiveAuthors = nextLine.split("\t");
+		String[] effectiveAuthors = nextLine.substring("Effective Authors:\t".length()).split("\t");
 		for (String author : effectiveAuthors) {
 			ps.setString(1, commit);
 			ps.setString(2, filepath);
 			ps.setString(3, author);
 			ps.addBatch();
 		}
-		return null;
 	}
 
 	private Integer parseInt(String line, String... removes) {
@@ -105,7 +106,7 @@ public class ChurnParser {
 		for (String remove : removes) {
 			str = str.replaceAll(remove, "");
 		}
-		
+
 		return Integer.valueOf(str.trim());
 	}
 }

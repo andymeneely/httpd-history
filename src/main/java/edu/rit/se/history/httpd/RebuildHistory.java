@@ -15,10 +15,7 @@ import org.chaoticbits.devactivity.testutil.dbverify.DBVerifyRunner;
 import com.google.gdata.util.ServiceException;
 
 import edu.rit.se.history.httpd.analysis.BayesianPrediction;
-import edu.rit.se.history.httpd.analysis.ComponentChurn;
 import edu.rit.se.history.httpd.analysis.Counterparts;
-import edu.rit.se.history.httpd.analysis.Peach;
-import edu.rit.se.history.httpd.analysis.RecentAuthorsAffected;
 import edu.rit.se.history.httpd.analysis.RecentChurn;
 import edu.rit.se.history.httpd.analysis.RecentPIC;
 import edu.rit.se.history.httpd.analysis.TimelineTables;
@@ -63,26 +60,27 @@ public class RebuildHistory {
 		// downloadGoogleDocs(props); //Nobody but Andy really needs to run this
 		/* --- CLEAN EVERYTHING --- */
 //		rebuildSchema();
-		/* --- LOAD STUFF --- */
-		// loadCVEs(dbUtil, props);
-		loadCVEToGit();
-		loadGitLog();
-		loadComponents();
-		loadGitRelease();
+//		/* --- LOAD STUFF --- */
+//		// loadCVEs(dbUtil, props);
+//		loadCVEToGit();
+//		loadGitLog();
+//		loadComponents();
+//		loadGitRelease();
 //		loadReleaseHistory();
-		// loadCVEToGit(dbUtil, props);
-		/* --- OPTIMIZE & INDEX TABLES --- */
-		optimizeTables();
-		/* --- COMPUTE & UPDATE TABLES --- */
-		updateChurn();
-		updateComponent();
-		//computeRecentChurn();
+//		// loadCVEToGit(dbUtil, props);
+//		/* --- OPTIMIZE & INDEX TABLES --- */
+//		optimizeTables();
+//		/* --- COMPUTE & UPDATE TABLES --- */
+//		updateChurn();
+//		updateComponent();
+//		computeRepoLog();
+//		computeRecentChurn();
 		/* --- VERIFY --- */
 //		verify();
 		/* --- ANALYZE --- */
-//		timeline();
-		visualizeVulnerabilitySeasons();
-		generateCounterparts();
+		timeline();
+//		visualizeVulnerabilitySeasons();
+//		generateCounterparts();
 //		buildAnalysis();
 		// prediction();
 		log.info("Done.");
@@ -143,6 +141,11 @@ public class RebuildHistory {
 		new CVEsParser().parse(dbUtil, new File(datadir, props.getProperty("history.cves.local")));
 	}
 
+	private void computeRepoLog() throws Exception {
+		log.info("Computing the RepoLog temporary table...");
+		dbUtil.executeSQLFile("sql/repolog.sql");
+	}
+
 	private void updateChurn() throws Exception {
 		log.info("Parsing churn data...");
 		new ChurnParser().parse(dbUtil, new File(datadir, props.getProperty("history.gitlog.churn")));
@@ -153,12 +156,12 @@ public class RebuildHistory {
 		new RecentChurn().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
 		log.info("Computing recent PIC...");
 		new RecentPIC().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
-		log.info("Computing recent Authors Affected...");
-		new RecentAuthorsAffected().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
-		log.info("Computing PEACh metric...");
-		new Peach().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
-		log.info("Computing component churn...");
-		new ComponentChurn().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
+//		log.info("Computing recent Authors Affected..."); /* Not done yet */
+//		new RecentAuthorsAffected().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
+//		log.info("Computing PEACh metric..."); /* Not done yet */
+//		new Peach().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
+//		log.info("Computing component churn..."); /* Not done yet*/
+//		new ComponentChurn().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
 		// log.info("Computing project churn..."); /* Not needed for this paper -Andy*/
 		// new ProjectChurn().compute(dbUtil,
 		// Long.parseLong(props.getProperty("history.churn.recent.step")));

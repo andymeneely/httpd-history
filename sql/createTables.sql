@@ -1,4 +1,3 @@
-DROP TABLE IF EXISTS RepoLog;
 DROP TABLE IF EXISTS GitLog;
 DROP TABLE IF EXISTS GitLogFiles;
 DROP TABLE IF EXISTS GitChurnAuthorsAffected;
@@ -37,8 +36,8 @@ CREATE TABLE GitLogFiles (
   LinesDeletedSelf int(10) unsigned,
   LinesDeletedOther int(10) unsigned,
   RecentPercIntChurn double,
-  AuthorsAffected int(10) unsigned,
-  EffectiveAuthors int(10) unsigned,
+  NumAuthorsAffected int(10) unsigned,
+  NumEffectiveAuthors int(10) unsigned,
   NewEffectiveAuthor ENUM('Yes', 'No'),
   Component varchar(40), 
   ComponentChurn int(10) unsigned,

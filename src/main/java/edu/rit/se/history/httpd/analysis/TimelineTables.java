@@ -2,7 +2,6 @@ package edu.rit.se.history.httpd.analysis;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 
 import org.chaoticbits.devactivity.DBUtil;
