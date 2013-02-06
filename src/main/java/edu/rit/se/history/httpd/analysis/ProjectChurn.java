@@ -12,21 +12,21 @@ public class ProjectChurn {
 	public void compute(DBUtil dbUtil, long recentPeriod) throws Exception {
 		Connection conn = dbUtil.getConnection();
 
-		String query = "SELECT g.filepath, g.commit,  " 
+		String query = "SELECT r0.filepath, r0.commit,  " 
 		  // ProjectChurn
-        		+ "(SELECT SUM(r5.linesinserted+r5.linesdeleted)  "
-        		+ "FROM repolog r5 WHERE r5.authordate <= r0.authordate AND (r0.authordate - r5.authordate) <= ? ) as projectChurn "
+        		+ "(SELECT SUM(r1.linesinserted+r1.linesdeleted)  "
+        		+ "FROM repolog r1 WHERE r1.authordate <= r0.authordate AND DATEDIFF(r0.authordate, r1.authordate) <= ? ) as projectChurn "
 				//
-		  + "FROM gitlogfiles g INNER JOIN repolog r ON g.commit=r.commit AND g.filepath = r.filepath ";
+		  + "FROM repolog r0 ";
 		
 		PreparedStatement ps = conn.prepareStatement(query);
 		log.debug("Executing query...");
+		ps.setLong(1, recentPeriod);
 		ResultSet rs = ps.executeQuery();
 
 		String upQuery = "UPDATE gitlogfiles SET projectChurn = ? WHERE commit = ? AND filepath = ?";
 		PreparedStatement psUpdate = conn.prepareStatement(upQuery);
-		ps.setLong(1, recentPeriod);
-		
+				
 		log.debug("Processing results...");
 		while (rs.next()) {
 			psUpdate.setInt(1, rs.getInt("projectchurn"));

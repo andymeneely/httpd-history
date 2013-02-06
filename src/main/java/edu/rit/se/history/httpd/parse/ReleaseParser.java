@@ -7,6 +7,7 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Scanner;
 
+
 import org.chaoticbits.devactivity.DBUtil;
 
 public class ReleaseParser {
@@ -44,5 +45,5 @@ public class ReleaseParser {
 		scanner.close();
 		conn.close();
 	}
-
+	
 }
