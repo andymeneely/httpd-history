@@ -5,6 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.log4j.xml.DOMConfigurator;
@@ -67,12 +69,12 @@ public class RebuildHistory {
 		loadCVEToGit();
 		loadGitLog();
 		loadComponents();
-		loadGitRelease();
 		loadReleaseHistory();
 		// loadCVEToGit(dbUtil, props);
 		/* --- OPTIMIZE & INDEX TABLES --- */
 		optimizeTables();
 		/* --- COMPUTE & UPDATE TABLES --- */
+		updateGitRelease();
 		updateChurn();
 		updateComponent();
 		updateSLOC();
@@ -91,9 +93,24 @@ public class RebuildHistory {
 
 	private Properties setUpProps() throws IOException {
 		Properties props = PropsLoader.getProperties("httpdhistory.properties");
+		verifyAgainstDefaultProps(props, PropsLoader.getProperties("httpdhistory.properties.default"));
 		DOMConfigurator.configure("log4j.properties.xml");
 		datadir = new File(props.getProperty("history.datadir"));
 		return props;
+	}
+
+	private void verifyAgainstDefaultProps(Properties actualProps, Properties defaultProps) {
+		List<Object> missingKeys = new ArrayList<Object>();
+		for (Object key : defaultProps.keySet()) {
+			if (!actualProps.containsKey(key))
+				missingKeys.add(key);
+		}
+		if (!missingKeys.isEmpty())
+			throw new IllegalStateException(
+					"ERROR! Your httpdhistory.properties is not set with the latest properties. \n MISSING PROPERTIES: "
+							+ missingKeys.toString()
+							+ "\nCompare your httpdhistory.properties with httpdhistory.properties.default to determine what properties "
+							+ "you are missing.");
 	}
 
 	private DBUtil setUpDB(Properties props) throws ClassNotFoundException {
@@ -134,7 +151,7 @@ public class RebuildHistory {
 		new ReleaseParser().parse(dbUtil, new File(datadir, props.getProperty("history.release")));
 	}
 
-	private void loadGitRelease() throws Exception {
+	private void updateGitRelease() throws Exception {
 		log.info("Updating major releases according to dates...");
 		new GitRelease().load(dbUtil);
 	}
@@ -159,12 +176,14 @@ public class RebuildHistory {
 		new RecentChurn().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
 		log.info("Computing recent PIC...");
 		new RecentPIC().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
-//		log.info("Computing recent Authors Affected..."); /* Not done yet */
-//		new RecentAuthorsAffected().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
-//		log.info("Computing PEACh metric..."); /* Not done yet */
-//		new Peach().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
-//		log.info("Computing component churn..."); /* Not done yet*/
-//		new ComponentChurn().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
+		// log.info("Computing recent Authors Affected..."); /* Not done yet */
+		// new RecentAuthorsAffected().compute(dbUtil,
+		// Long.parseLong(props.getProperty("history.churn.recent.step")));
+		// log.info("Computing PEACh metric..."); /* Not done yet */
+		// new Peach().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
+		// log.info("Computing component churn..."); /* Not done yet*/
+		// new ComponentChurn().compute(dbUtil,
+		// Long.parseLong(props.getProperty("history.churn.recent.step")));
 		// log.info("Computing project churn..."); /* Not needed for this paper -Andy*/
 		// new ProjectChurn().compute(dbUtil,
 		// Long.parseLong(props.getProperty("history.churn.recent.step")));
@@ -226,10 +245,10 @@ public class RebuildHistory {
 		log.info("Updating components...");
 		new GitlogfilesComponent().update(dbUtil);
 	}
-	
+
 	private void updateSLOC() throws Exception {
 		log.info("Updating LOC for each commit...");
-		new  GitLogLOC().update(dbUtil, new File(datadir, props.getProperty("history.churn.loc_at_rev")));
+		new GitLogLOC().update(dbUtil, new File(datadir, props.getProperty("history.churn.loc_at_rev")));
 	}
-		
+
 }
