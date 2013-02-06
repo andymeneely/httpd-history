@@ -202,12 +202,13 @@ public class RebuildHistory {
 	}
 
 	private void generateCounterparts() throws Exception {
-		log.info("Generating counterparts..");
-		new Counterparts(dbUtil, new File(datadir, props.getProperty("history.cveintro.local")), Integer.valueOf(props
-				.getProperty("history.counterparts.num"))).generate(); // .generate(1000) //seeded
+		log.info("Generating counterparts...");
+		int seed = Integer.valueOf(props.getProperty("history.counterparts.seed"));
+		new Counterparts(dbUtil, Integer.valueOf(props.getProperty("history.counterparts.num"))).generate(seed);
 	}
 
 	private void buildAnalysis() throws FileNotFoundException, SQLException, IOException {
+		log.info("Build analysis...");
 		dbUtil.executeSQLFile("sql/analysis.sql");
 	}
 

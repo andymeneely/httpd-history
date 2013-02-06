@@ -48,6 +48,9 @@ history.component.paths=httpd-component-paths.txt
 # The number of counterparts in our counterpart analysis
 history.counterparts.num=5
 
+# The seed to use in generating random counterparts
+history.counterparts.seed=2701
+
 # Database connection properties
 history.dbuser=root
 history.dbpw=root
