@@ -59,29 +59,29 @@ public class RebuildHistory {
 		/* --- DOWNLOAD STUFF --- */
 		// downloadGoogleDocs(props); //Nobody but Andy really needs to run this
 		/* --- CLEAN EVERYTHING --- */
-//		rebuildSchema();
-//		/* --- LOAD STUFF --- */
-//		// loadCVEs(dbUtil, props);
-//		loadCVEToGit();
-//		loadGitLog();
-//		loadComponents();
-//		loadGitRelease();
-//		loadReleaseHistory();
-//		// loadCVEToGit(dbUtil, props);
-//		/* --- OPTIMIZE & INDEX TABLES --- */
-//		optimizeTables();
-//		/* --- COMPUTE & UPDATE TABLES --- */
-//		updateChurn();
-//		updateComponent();
-//		computeRepoLog();
-//		computeRecentChurn();
+		rebuildSchema();
+		/* --- LOAD STUFF --- */
+		// loadCVEs(dbUtil, props);
+		loadCVEToGit();
+		loadGitLog();
+		loadComponents();
+		loadGitRelease();
+		loadReleaseHistory();
+		// loadCVEToGit(dbUtil, props);
+		/* --- OPTIMIZE & INDEX TABLES --- */
+		optimizeTables();
+		/* --- COMPUTE & UPDATE TABLES --- */
+		updateChurn();
+		updateComponent();
+		computeRepoLog();
+		computeRecentChurn();
 		/* --- VERIFY --- */
 //		verify();
 		/* --- ANALYZE --- */
-		timeline();
-//		visualizeVulnerabilitySeasons();
-//		generateCounterparts();
-//		buildAnalysis();
+//		timeline();
+		visualizeVulnerabilitySeasons();
+		generateCounterparts();
+		buildAnalysis();
 		// prediction();
 		log.info("Done.");
 	}
@@ -198,12 +198,13 @@ public class RebuildHistory {
 	}
 
 	private void generateCounterparts() throws Exception {
-		log.info("Generating counterparts..");
+		log.info("Generating counterparts...");
 		int seed = Integer.valueOf(props.getProperty("history.counterparts.seed"));
 		new Counterparts(dbUtil, Integer.valueOf(props.getProperty("history.counterparts.num"))).generate(seed);
 	}
 
 	private void buildAnalysis() throws FileNotFoundException, SQLException, IOException {
+		log.info("Build analysis...");
 		dbUtil.executeSQLFile("sql/analysis.sql");
 	}
 

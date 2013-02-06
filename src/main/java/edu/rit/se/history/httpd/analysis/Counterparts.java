@@ -115,7 +115,7 @@ public class Counterparts {
 			ps.addBatch();
 		}
 
-		log.debug("Executing upsert..");
+		log.debug("Executing insert..");
 		ps.executeBatch();
 		conn.close();
 	}
