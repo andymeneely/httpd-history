@@ -26,7 +26,6 @@ history.gitlog.churn=httpd-churnlog.txt
 
 history.release=httpd-release-history.txt
 
-history.gitlog.loc=httpd-full-gitlog-loc.txt
 # Parsed by java.sql.Timestamp.valueOf()
 # yyyy-mm-dd hh:mm:ss.fffffffff
 history.timeline.start=1996-07-03 06:18:15.0

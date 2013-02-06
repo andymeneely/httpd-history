@@ -21,10 +21,12 @@ import edu.rit.se.history.httpd.analysis.RecentPIC;
 import edu.rit.se.history.httpd.analysis.TimelineTables;
 import edu.rit.se.history.httpd.dbverify.CodeChurnForAllCommits;
 import edu.rit.se.history.httpd.dbverify.ComponentForAllFilepath;
+import edu.rit.se.history.httpd.dbverify.LOCForAllCommitFilepaths;
 import edu.rit.se.history.httpd.parse.CVEToGit;
 import edu.rit.se.history.httpd.parse.CVEsParser;
 import edu.rit.se.history.httpd.parse.ChurnParser;
 import edu.rit.se.history.httpd.parse.ComponentParser;
+import edu.rit.se.history.httpd.parse.GitLogLOC;
 import edu.rit.se.history.httpd.parse.GitLogParser;
 import edu.rit.se.history.httpd.parse.GitRelease;
 import edu.rit.se.history.httpd.parse.GitlogfilesComponent;
@@ -73,6 +75,7 @@ public class RebuildHistory {
 		/* --- COMPUTE & UPDATE TABLES --- */
 		updateChurn();
 		updateComponent();
+		updateSLOC();
 		computeRepoLog();
 		computeRecentChurn();
 		/* --- VERIFY --- */
@@ -189,6 +192,7 @@ public class RebuildHistory {
 		DBVerifyRunner runner = new DBVerifyRunner(dbUtil);
 		runner.add(new CodeChurnForAllCommits());
 		runner.add(new ComponentForAllFilepath());
+		runner.add(new LOCForAllCommitFilepaths());
 		runner.run();
 	}
 
@@ -213,13 +217,18 @@ public class RebuildHistory {
 	}
 
 	private void loadComponents() throws Exception {
-		log.info("Loading Component into database...");
+		log.info("Loading components...");
 		new ComponentParser().parse(dbUtil, new File(datadir, props.getProperty("history.component.paths")));
 	}
 
 	private void updateComponent() throws Exception {
-		log.info("Updating Gitlogfiles Component...");
+		log.info("Updating components...");
 		new GitlogfilesComponent().update(dbUtil);
-
 	}
+	
+	private void updateSLOC() throws Exception {
+		log.info("Updating LOC for each commit...");
+		new  GitLogLOC().update(dbUtil, new File(datadir, props.getProperty("history.churn.loc_at_rev")));
+	}
+		
 }
