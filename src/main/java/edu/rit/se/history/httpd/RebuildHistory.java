@@ -21,6 +21,7 @@ import edu.rit.se.history.httpd.analysis.Counterparts;
 import edu.rit.se.history.httpd.analysis.RecentChurn;
 import edu.rit.se.history.httpd.analysis.RecentPIC;
 import edu.rit.se.history.httpd.analysis.TimelineTables;
+import edu.rit.se.history.httpd.dbverify.AllCVEToGitInAnalysis;
 import edu.rit.se.history.httpd.dbverify.CodeChurnForAllCommits;
 import edu.rit.se.history.httpd.dbverify.ComponentForAllFilepath;
 import edu.rit.se.history.httpd.dbverify.LOCForAllCommitFilepaths;
@@ -80,14 +81,14 @@ public class RebuildHistory {
 		updateSLOC();
 		computeRepoLog();
 		computeRecentChurn();
-		/* --- VERIFY --- */
-		verify();
 		/* --- ANALYZE --- */
 		timeline();
 		visualizeVulnerabilitySeasons();
 		generateCounterparts();
 		buildAnalysis();
 		// prediction();
+		/* --- VERIFY --- */
+		verify();
 		log.info("Done.");
 	}
 
@@ -212,6 +213,7 @@ public class RebuildHistory {
 		runner.add(new CodeChurnForAllCommits());
 		runner.add(new ComponentForAllFilepath());
 		runner.add(new LOCForAllCommitFilepaths());
+		runner.add(new AllCVEToGitInAnalysis());
 		runner.run();
 	}
 
