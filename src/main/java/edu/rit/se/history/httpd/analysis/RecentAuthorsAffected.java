@@ -15,7 +15,7 @@ public class RecentAuthorsAffected {
 			    + "(SELECT COUNT(DISTINCT authoraffected) FROM gitchurnauthorsaffected a " 
 			    + "INNER JOIN repolog _r ON a.commit = _r.commit "
 			    + "WHERE _r.authordate <= r.authordate AND DATEDIFF(r.authordate, _r.authordate) <= ? "
-			    + "GROUP BY a.filepath HAVING a.filepath = r.filepath ) AS RecentAuthorsAffected "
+			    + "AND a.filepath = r.filepath ) AS RecentAuthorsAffected "
 			+ "FROM Repolog r";
 		
 		String upQuery = "UPDATE GitLogFiles SET RecentAuthorsAffected = ? WHERE commit = ? AND filepath = ?";

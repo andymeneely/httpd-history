@@ -15,10 +15,12 @@ CREATE INDEX GitLogFilesComponent USING BTREE ON GitLogFiles(component);
 CREATE INDEX GitChurnEffectiveAuthorsAuthor USING BTREE ON GitChurnEffectiveAuthors(EffectiveAuthor);
 CREATE INDEX GitChurnEffectiveACommitIndex USING BTREE ON GitChurnEffectiveAuthors(Commit);
 CREATE INDEX GitChurnEffectiveAFilepathIndex USING BTREE ON GitChurnEffectiveAuthors(Filepath);
+CREATE INDEX GitChurnEffectiveAuthorsAllThree USING BTREE ON GitChurnEffectiveAuthors(EffectiveAuthor, Commit, Filepath);
 
 CREATE INDEX GitChurnAuthorsAffectedAuthor USING BTREE ON GitChurnAuthorsAffected(AuthorAffected);
 CREATE INDEX GitChurnAuthorsCommitIndex USING BTREE ON GitChurnAuthorsAffected(Commit);
-CREATE INDEX GitChurnAuthorFilepathIndex USING BTREE ON GitChurnAuthorsAffected(filepath);
+CREATE INDEX GitChurnAuthorFilepathIndex USING BTREE ON GitChurnAuthorsAffected(Filepath);
+CREATE INDEX GitChurnAuthorsAffectedAllThree USING BTREE ON GitChurnAuthorsAffected(AuthorAffected,Filepath,Commit);
 
 CREATE INDEX CVEToGitIndex USING BTREE ON CVEToGit(CVE,Filepath);
 CREATE INDEX CVEToGitCommitIntroduced USING BTREE ON CVEToGit(CommitIntroduced);

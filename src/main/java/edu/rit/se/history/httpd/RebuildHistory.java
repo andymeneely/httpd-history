@@ -18,6 +18,8 @@ import com.google.gdata.util.ServiceException;
 
 import edu.rit.se.history.httpd.analysis.BayesianPrediction;
 import edu.rit.se.history.httpd.analysis.Counterparts;
+import edu.rit.se.history.httpd.analysis.Peach;
+import edu.rit.se.history.httpd.analysis.RecentAuthorsAffected;
 import edu.rit.se.history.httpd.analysis.RecentChurn;
 import edu.rit.se.history.httpd.analysis.RecentPIC;
 import edu.rit.se.history.httpd.analysis.TimelineTables;
@@ -66,12 +68,10 @@ public class RebuildHistory {
 		/* --- CLEAN EVERYTHING --- */
 		rebuildSchema();
 		/* --- LOAD STUFF --- */
-		// loadCVEs(dbUtil, props);
 		loadCVEToGit();
 		loadGitLog();
 		loadComponents();
 		loadReleaseHistory();
-		// loadCVEToGit(dbUtil, props);
 		/* --- OPTIMIZE & INDEX TABLES --- */
 		optimizeTables();
 		/* --- COMPUTE & UPDATE TABLES --- */
@@ -82,8 +82,8 @@ public class RebuildHistory {
 		computeRepoLog();
 		computeRecentChurn();
 		/* --- ANALYZE --- */
-		timeline();
-		visualizeVulnerabilitySeasons();
+		// timeline();
+		// visualizeVulnerabilitySeasons();
 		generateCounterparts();
 		buildAnalysis();
 		// prediction();
@@ -177,12 +177,11 @@ public class RebuildHistory {
 		new RecentChurn().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
 		log.info("Computing recent PIC...");
 		new RecentPIC().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
-		// log.info("Computing recent Authors Affected..."); /* Not done yet */
-		// new RecentAuthorsAffected().compute(dbUtil,
-		// Long.parseLong(props.getProperty("history.churn.recent.step")));
-		// log.info("Computing PEACh metric..."); /* Not done yet */
-		// new Peach().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
-		// log.info("Computing component churn..."); /* Not done yet*/
+		log.info("Computing recent Authors Affected...");
+		new RecentAuthorsAffected().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
+		log.info("Computing PEACh metric...");
+		new Peach().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
+		// log.info("Computing component churn...");
 		// new ComponentChurn().compute(dbUtil,
 		// Long.parseLong(props.getProperty("history.churn.recent.step")));
 		// log.info("Computing project churn..."); /* Not needed for this paper -Andy*/

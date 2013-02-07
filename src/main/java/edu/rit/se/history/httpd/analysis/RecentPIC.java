@@ -13,7 +13,7 @@ public class RecentPIC {
 		Connection conn = dbUtil.getConnection();
 		String query = "SELECT r0.filepath, r0.commit, r0.authordate, (r0.linesinserted+r0.linesdeleted) as totalchurn, " 
      			// Recent PercIntChurn
-       			+ "SELECT (SUM(r2.linesDeletedOther)/SUM(r2.linesdeleted) "
+       			+ "(SELECT SUM(r2.linesDeletedOther)/SUM(r2.linesdeleted) "
         		+ "FROM repolog r2 WHERE r2.filepath = r0.filepath AND r2.authordate <= r0.authordate AND DATEDIFF(r0.authordate, r2.authordate) <= ? ) as RecentPercIntChurn "
         		+ "FROM repolog r0  ";
 		

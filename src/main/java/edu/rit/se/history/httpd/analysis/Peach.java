@@ -28,9 +28,10 @@ public class Peach {
 		String query = "SELECT r.filepath, r.commit, r.authordate, ( "
 							+ "	( SELECT count(distinct effectiveauthor) FROM gitchurneffectiveauthors a "
          					+ "	 INNER JOIN repolog _r ON a.commit = _r.commit AND a.filepath = _r.filepath "
-               				+ "	 WHERE _r.authordate <= r.authordate AND DATEDIFF(r.authordate, _r.authordate) <= ? "
-               				+ "	 AND (a.commit != r.commit OR a.filepath != r.filepath) AND effectiveauthor IN (SELECT effectiveauthor FROM gitchurneffectiveauthors b " 
-                            + "                            WHERE b.commit = r.commit AND b.filepath = r.filepath)  "
+               				+ "	 WHERE effectiveauthor IN " + //
+               				"		(SELECT effectiveauthor FROM gitchurneffectiveauthors b WHERE b.commit = r.commit AND b.filepath = r.filepath) " +
+               				"AND _r.authordate <= r.authordate AND DATEDIFF(r.authordate, _r.authordate) <= ? "
+               				+ "	 AND (a.commit != r.commit OR a.filepath != r.filepath)"
                 			+ "		)"
                 		+"/"
                 		+"("
