@@ -36,8 +36,8 @@ history.timeline.stop=2012-10-16 20:07:30.0
 # 180 days is 15552000000 ms
 history.timeline.step=2592000000
 
-# The time back to be considered "recent"
-history.churn.recent.step=2592000000
+# The time back to be considered "recent", in days
+history.churn.recent.step=30
 
 # The SLOC for each file at each revision, to be used with relative 
 history.churn.loc_at_rev=httpd-full-gitlog-loc.txt

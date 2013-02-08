@@ -17,6 +17,7 @@ public class GitLogParser {
 
 	public GitLogParser() {
 		format = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy +SSSS");
+
 	}
 
 	/**
@@ -34,7 +35,7 @@ public class GitLogParser {
 		Connection conn = dbUtil.getConnection();
 		PreparedStatement ps = conn.prepareStatement("INSERT INTO GitLog(Commit, AuthorName, AuthorEmail, "
 				+ "AuthorDate, Parent, Subject, Body, NumSignedOffBys) " + "VALUES (?,?,?,?,?,?,?,?)");
-		PreparedStatement ps2 = conn.prepareStatement("INSERT INTO GitLogFiles(Commit,Filepath) " + "VALUES (?,?)");
+		PreparedStatement ps2 = conn.prepareStatement("INSERT INTO GitLogFiles(Commit,Filepath) VALUES (?,?)");
 		Scanner scanner = new Scanner(gitLog);
 		log.debug("Scanning the log...");
 		scanner.nextLine();
@@ -83,7 +84,8 @@ public class GitLogParser {
 
 	private static void parseFileChanges(Connection conn, String commit, List<String> bodyLines, PreparedStatement ps2)
 			throws Exception {
-		if (bodyLines.size() < 3) // no changes to files - you can do this by changing file permissions in git
+		// no changes to files - you can do this by changing file permissions in git
+		if (bodyLines.size() < 3)
 			return;
 		for (int i = bodyLines.size() - 3; i >= 0 && !"".equals(bodyLines.get(i)); i--) {
 			String fileChange = bodyLines.get(i);
@@ -106,4 +108,5 @@ public class GitLogParser {
 			testStr = "Sun Mar 10 01:00:00 2002 +0000";
 		return format.parse(testStr);
 	}
+
 }

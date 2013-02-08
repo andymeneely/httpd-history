@@ -43,6 +43,7 @@ CREATE TABLE GitLogFiles (
   ComponentChurn int(10) unsigned,
   PEACh DOUBLE,
   RecentAuthorsAffected int(10) unsigned,
+  LinesOfCode int(10) unsigned,
   PRIMARY KEY  (`ID`)
 ) ENGINE=MyISAM;
 
