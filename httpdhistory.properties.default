@@ -23,8 +23,12 @@ history.cveintro.googledoc=0ApQLJygPvlirdGNVYk45d0VFaDRGV3RVWXJrZF8zNHc&gid=0
 history.gitlog=httpd-gitlog.txt
 
 history.gitlog.churn=httpd-churnlog.txt
-
+history.gitlog.churn.fix=httpd-churnlog-fix.txt
+history.gitlog.churnfix55=interchurn.txt
 history.release=httpd-release-history.txt
+# The file that contains the path prefixes of the different components
+history.component.paths=httpd-component-paths.txt
+history.filelisting.v22=httpd-2.2.0-files.txt
 
 # Parsed by java.sql.Timestamp.valueOf()
 # yyyy-mm-dd hh:mm:ss.fffffffff

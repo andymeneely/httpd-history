@@ -13,26 +13,26 @@ public class ComponentChurn {
 
 	public void compute(DBUtil dbUtil, long recentPeriod) throws Exception {
 		Connection conn = dbUtil.getConnection();
-	/*String query =	
-		"UPDATE gitlogfiles g SET g.component = ( "+
-        "        SELECT SUM(r.linesinserted+r.linesdeleted) " +
-        "        FROM Repolog r " +
-        "        WHERE r.component = g.component " + 
-        "        AND r.authordate <= (SELECT authordate from repolog r1 WHERE r1.commit = g.commit AND r1.filepath = g.filepath) " +
-        "        AND DATEDIFF(g.authordate,r.authordate) <= 30 " +
-        "        ) ";*/		
-				
-		String query = "SELECT r0.filepath, r0.commit, r0.component, r0.authordate, "   
-		        + "(SELECT SUM(r1.linesinserted+r1.linesdeleted) " 
-		        + "FROM Repolog r1 " 
-		        + "WHERE r1.component = r0.component " 
-		        + "AND r1.authordate <= r0.authordate "
-		        + "AND DATEDIFF(r0.authordate,r1.authordate) <= ? ) as componentChurn  "
-		+"FROM repolog r0 ";
-
-		String upQuery = "UPDATE gitlogfiles SET componentChurn = ? WHERE commit = ? AND filepath = ?";
+	String query =	
+		"UPDATE gitlogfiles g INNER JOIN gitlog l ON g.commit=l.commit SET componentChurn =    "    
+		+"("
+		+"	SELECT SUM(linesinserted+linesdeleted) FROM Repolog r "
+		+"	WHERE r.component = g.component AND r.authordate <= l.authordate "
+        +"    AND DATEDIFF(l.authordate,r.authordate) <= ? "
+        +")	";
+        
+		
+//		String query = "SELECT r0.commit, r0.filepath, r0.component, r0.authordate, "   
+//		        + "(SELECT SUM(r1.linesinserted+r1.linesdeleted) " 
+//		        + "FROM Repolog r1 " 
+//		        + "WHERE r1.component = r0.component " 
+//		        + "AND r1.authordate <= r0.authordate "
+//		        + "AND DATEDIFF(r0.authordate,r1.authordate) <= ? ) as componentChurn  "
+//		+"FROM repolog r0 ";
+//		
+		//String upQuery = "UPDATE gitlogfiles SET componentChurn = ? WHERE commit = ? AND filepath = ?";
 		PreparedStatement ps = conn.prepareStatement(query);
-		PreparedStatement psUpdate = conn.prepareStatement(upQuery);
+		/*PreparedStatement psUpdate = conn.prepareStatement(upQuery);
 		ps.setLong(1, recentPeriod);		
 		log.debug("Executing query...");
 		ResultSet rs = ps.executeQuery();
@@ -44,8 +44,12 @@ public class ComponentChurn {
 			psUpdate.addBatch();
 		}
 		log.debug("Executing update...");
-		psUpdate.executeBatch();
+		psUpdate.executeBatch();*/
+		
+		ps.setLong(1, recentPeriod);
+		int rowsaffected=ps.executeUpdate();
 		conn.close();
+		log.info("update completed... " + rowsaffected + " rows affected" );
 
 	}
 
