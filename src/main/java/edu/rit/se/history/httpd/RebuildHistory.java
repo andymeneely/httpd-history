@@ -22,6 +22,7 @@ import edu.rit.se.history.httpd.analysis.Peach;
 import edu.rit.se.history.httpd.analysis.RecentAuthorsAffected;
 import edu.rit.se.history.httpd.analysis.RecentChurn;
 import edu.rit.se.history.httpd.analysis.RecentPIC;
+import edu.rit.se.history.httpd.analysis.SumStatsVCC;
 import edu.rit.se.history.httpd.analysis.TimelineTables;
 import edu.rit.se.history.httpd.dbverify.AllCVEToGitInAnalysis;
 import edu.rit.se.history.httpd.dbverify.CodeChurnForAllCommits;
@@ -86,6 +87,7 @@ public class RebuildHistory {
 		// visualizeVulnerabilitySeasons();
 		generateCounterparts();
 		buildAnalysis();
+		summaryStatistics();
 		// prediction();
 		/* --- VERIFY --- */
 		verify();
@@ -250,6 +252,11 @@ public class RebuildHistory {
 	private void updateSLOC() throws Exception {
 		log.info("Updating LOC for each commit...");
 		new GitLogLOC().update(dbUtil, new File(datadir, props.getProperty("history.churn.loc_at_rev")));
+	}
+
+	private void summaryStatistics() throws Exception {
+		log.info("Computing summary statistics...");
+		new SumStatsVCC(dbUtil).compute();
 	}
 
 }
