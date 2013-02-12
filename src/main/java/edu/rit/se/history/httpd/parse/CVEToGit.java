@@ -22,9 +22,9 @@ public class CVEToGit {
 		String cve = "", filepath = "", commitFixed = "", commitIntroduced = "";
 		while ((line = reader.readNext()) != null) {
 			cve = line[0];
-			filepath = line[2];
-			commitIntroduced = line[3];
-			commitFixed = line[10];
+			filepath = line[2].trim();
+			commitIntroduced = line[3].trim();
+			commitFixed = line[4].trim();
 			int i = 1;
 			ps.setString(i++, cve);
 			ps.setString(i++, filepath);
