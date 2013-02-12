@@ -37,6 +37,7 @@ history.timeline.stop=2012-10-16 20:07:30.0
 # In milliseconds, please (but make it like days or months)
 # 1 day is 86400000 ms
 # 30 days is 2592000000 ms
+# 60 days is 5184000000 ms
 # 180 days is 15552000000 ms
 history.timeline.step=2592000000
 
