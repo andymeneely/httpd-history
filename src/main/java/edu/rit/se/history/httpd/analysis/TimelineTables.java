@@ -22,7 +22,7 @@ public class TimelineTables {
 			+ "AND c2g.CommitIntroduced = repoIntro.commit " //
 			+ "AND repoIntro.authordate < ? " //
 			+ "AND c2g.CommitFixed = repoFixed.commit " //
-			+ "AND repoFixed.authordate > ? " //
+			+ "AND repoFixed.authordate >= ? " //
 	;
 
 	private final DBUtil dbUtil;
@@ -33,9 +33,11 @@ public class TimelineTables {
 
 	public void build(Timestamp start, Timestamp stop, long stepMillis) throws Exception {
 		Connection conn = dbUtil.getConnection();
+		log.debug("Clearing timeline table...");
+		conn.createStatement().execute("DELETE FROM Timeline");
 		PreparedStatement cveQuery = conn.prepareStatement(cveQuerySQL);
 		PreparedStatement insertTimeline = conn
-				.prepareStatement("INSERT INTO Timeline(Filepath, NumCVEs, AtTime, CVEs) " + "VALUES (?,?,?,?)");
+				.prepareStatement("INSERT INTO Timeline(Filepath, NumCVEs, AtTime, CVEs) VALUES (?,?,?,?)");
 		ResultSet filepaths = conn.createStatement().executeQuery("SELECT DISTINCT Filepath FROM CVEToGit " + //
 				"WHERE Filepath LIKE '%.c' OR Filepath LIKE '%.h'");
 		log.debug("Looking up timeline data points...");
