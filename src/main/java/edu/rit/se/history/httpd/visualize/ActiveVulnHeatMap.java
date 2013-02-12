@@ -59,6 +59,11 @@ public class ActiveVulnHeatMap {
 		int rectWidth = IMG_WIDTH / numTimes;
 		int rectHeight = TOTAL_START_Y / numFiles;
 		while (rs.next()) {
+			if (!getYear(rs).equals(lastYear)) {
+				g2d.setColor(new Color(75, 75, 75));
+				g2d.drawLine(x, 0, x, IMG_HEIGHT);
+				g2d.drawString((getYear(rs)) + "", x + 3, 20);
+			}
 			g2d.setColor(getSingleFileColor(rs.getInt("NumCVEs"), maxVuln));
 			if (!rs.getString("Filepath").equals(lastFilepath)) { // new file!
 				x = 0;
@@ -67,8 +72,12 @@ public class ActiveVulnHeatMap {
 			g2d.fillRect(x, y, rectWidth, rectHeight);
 			x += rectWidth;
 			lastFilepath = rs.getString("Filepath");
-			lastYear = Integer.valueOf(yearFormat.format(new Date(rs.getTimestamp("AtTime").getTime())));
+			lastYear = getYear(rs);
 		}
+	}
+
+	private Integer getYear(ResultSet rs) throws SQLException {
+		return Integer.valueOf(yearFormat.format(new Date(rs.getTimestamp("AtTime").getTime())));
 	}
 
 	private Color getSingleFileColor(int numCVEs, int maxVuln) {
