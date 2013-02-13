@@ -64,31 +64,31 @@ public class RebuildHistory {
 
 	public void run() throws Exception {
 		/* --- DOWNLOAD STUFF --- */
-		// downloadGoogleDocs(props); //Nobody but Andy really needs to run this
+		downloadGoogleDocs(props); //Nobody but Andy really needs to run this
 		/* --- CLEAN EVERYTHING --- */
 		rebuildSchema();
-		/* --- LOAD STUFF --- */
+//		/* --- LOAD STUFF --- */
 		loadCVEToGit();
-		loadGitLog();
-		loadComponents();
-		loadReleaseHistory();
-		/* --- OPTIMIZE & INDEX TABLES --- */
-		optimizeTables();
-		/* --- COMPUTE & UPDATE TABLES --- */
-		updateGitRelease();
-		updateChurn();
-		updateComponent();
-		updateSLOC();
-		computeRepoLog();
-		computeRecentChurn();
-		/* --- ANALYZE --- */
-		// timeline();
-		// visualizeVulnerabilitySeasons();
-		generateCounterparts();
-		buildAnalysis();
-		// prediction();
-		/* --- VERIFY --- */
-		verify();
+//		loadGitLog();
+//		loadComponents();
+//		loadReleaseHistory();
+//		/* --- OPTIMIZE & INDEX TABLES --- */
+//		optimizeTables();
+//		/* --- COMPUTE & UPDATE TABLES --- */
+//		updateGitRelease();
+//		updateChurn();
+//		updateComponent();
+//		updateSLOC();
+//		computeRepoLog();
+//		computeRecentChurn();
+//		/* --- ANALYZE --- */
+//		// timeline();
+//		// visualizeVulnerabilitySeasons();
+//		generateCounterparts();
+//		buildAnalysis();
+//		// prediction();
+//		/* --- VERIFY --- */
+//		verify();
 		log.info("Done.");
 	}
 
