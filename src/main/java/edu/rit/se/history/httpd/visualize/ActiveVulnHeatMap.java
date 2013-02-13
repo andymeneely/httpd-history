@@ -7,6 +7,8 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Properties;
 
 import javax.imageio.ImageIO;
@@ -18,9 +20,10 @@ import com.mysql.jdbc.Connection;
 import edu.rit.se.history.httpd.RebuildHistory;
 
 public class ActiveVulnHeatMap {
-	private static final int IMG_WIDTH = 800;
-	private static final int IMG_HEIGHT = 600;
+	private static final int IMG_WIDTH = 600;
+	private static final int IMG_HEIGHT = 400;
 	private static final int TOTAL_START_Y = 9 * IMG_HEIGHT / 10;
+	private static final SimpleDateFormat yearFormat = new SimpleDateFormat("yyyy");
 	private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ActiveVulnHeatMap.class);
 
 	public static void main(String[] args) throws Exception {
@@ -50,35 +53,51 @@ public class ActiveVulnHeatMap {
 	private void fileRows(Graphics2D g2d, Connection conn, int numFiles, int maxVuln, int numTimes) throws SQLException {
 		ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM Timeline ORDER BY Filepath ASC, AtTime ASC");
 		String lastFilepath = "";
+		int lastYear = 1996; // because we all know that nothing ever happened before then...
 		int x = 0;
 		int y = 0;
+		int rectWidth = IMG_WIDTH / numTimes;
+		int rectHeight = TOTAL_START_Y / numFiles;
 		while (rs.next()) {
+			if (!getYear(rs).equals(lastYear)) {
+				g2d.setColor(new Color(75, 75, 75));
+				g2d.drawLine(x, 0, x, IMG_HEIGHT);
+				g2d.drawString((getYear(rs)) + "", x + 3, 20);
+			}
 			g2d.setColor(getSingleFileColor(rs.getInt("NumCVEs"), maxVuln));
 			if (!rs.getString("Filepath").equals(lastFilepath)) { // new file!
 				x = 0;
-				y += TOTAL_START_Y / numFiles;
+				y += rectHeight;
 			}
-			g2d.fillRect(x, y, IMG_WIDTH / numTimes, TOTAL_START_Y / numFiles);
-			x += IMG_WIDTH / numTimes;
+			g2d.fillRect(x, y, rectWidth, rectHeight);
+			x += rectWidth;
 			lastFilepath = rs.getString("Filepath");
+			lastYear = getYear(rs);
 		}
+	}
+
+	private Integer getYear(ResultSet rs) throws SQLException {
+		return Integer.valueOf(yearFormat.format(new Date(rs.getTimestamp("AtTime").getTime())));
 	}
 
 	private Color getSingleFileColor(int numCVEs, int maxVuln) {
 		if (numCVEs == 0) {
-			return new Color(40, 31, 225); // dark blue
+			// return new Color(40, 31, 225); // dark blue
+			return Color.WHITE; // white
 		}
 		if (numCVEs == 1) {
-			return new Color(225, 186, 31); // yellow
+			// return new Color(225, 186, 31); // yellow
+			return new Color(200, 200, 200);
 		}
 		if (numCVEs == 2) {
-			return new Color(225, 113, 31); // orange
+			// return new Color(225, 113, 31); // orange
+			return new Color(100, 100, 100);
 		}
-		if (numCVEs == 3) {
-			return new Color(225, 40, 31); // red
-		}
-		if (numCVEs > 3) {
-			return Color.WHITE;
+		// if (numCVEs == 3) {
+		// return new Color(225, 40, 31); // red
+		// }
+		if (numCVEs >= 3) {
+			return Color.BLACK;
 		} else
 			throw new IllegalArgumentException(" color not handled for numCVEs: " + numCVEs);
 	}

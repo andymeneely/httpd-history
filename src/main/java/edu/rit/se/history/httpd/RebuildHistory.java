@@ -22,10 +22,10 @@ import edu.rit.se.history.httpd.analysis.Peach;
 import edu.rit.se.history.httpd.analysis.RecentAuthorsAffected;
 import edu.rit.se.history.httpd.analysis.RecentChurn;
 import edu.rit.se.history.httpd.analysis.RecentPIC;
+import edu.rit.se.history.httpd.analysis.SumStatsVCC;
 import edu.rit.se.history.httpd.analysis.TimelineTables;
 import edu.rit.se.history.httpd.dbverify.AllCVEToGitInAnalysis;
 import edu.rit.se.history.httpd.dbverify.CodeChurnForAllCommits;
-import edu.rit.se.history.httpd.dbverify.ComponentForAllFilepath;
 import edu.rit.se.history.httpd.dbverify.LOCForAllCommitFilepaths;
 import edu.rit.se.history.httpd.parse.CVEToGit;
 import edu.rit.se.history.httpd.parse.CVEsParser;
@@ -37,6 +37,7 @@ import edu.rit.se.history.httpd.parse.GitRelease;
 import edu.rit.se.history.httpd.parse.GitlogfilesComponent;
 import edu.rit.se.history.httpd.parse.ReleaseParser;
 import edu.rit.se.history.httpd.scrapers.GoogleDocExport;
+import edu.rit.se.history.httpd.visualize.ActiveVulnHeatMap;
 
 public class RebuildHistory {
 	private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(RebuildHistory.class);
@@ -64,31 +65,32 @@ public class RebuildHistory {
 
 	public void run() throws Exception {
 		/* --- DOWNLOAD STUFF --- */
-		downloadGoogleDocs(props); //Nobody but Andy really needs to run this
+//		downloadGoogleDocs(props); //Nobody but Andy really needs to run this
 		/* --- CLEAN EVERYTHING --- */
 		rebuildSchema();
-//		/* --- LOAD STUFF --- */
+		/* --- LOAD STUFF --- */
 		loadCVEToGit();
-//		loadGitLog();
-//		loadComponents();
-//		loadReleaseHistory();
-//		/* --- OPTIMIZE & INDEX TABLES --- */
-//		optimizeTables();
-//		/* --- COMPUTE & UPDATE TABLES --- */
-//		updateGitRelease();
-//		updateChurn();
-//		updateComponent();
-//		updateSLOC();
-//		computeRepoLog();
+		loadGitLog();
+		loadComponents();
+		loadReleaseHistory();
+		/* --- OPTIMIZE & INDEX TABLES --- */
+		optimizeTables();
+		/* --- COMPUTE & UPDATE TABLES --- */
+		updateGitRelease();
+		updateChurn();
+		updateComponent();
+		updateSLOC();
+		computeRepoLog();
 //		computeRecentChurn();
-//		/* --- ANALYZE --- */
-//		// timeline();
-//		// visualizeVulnerabilitySeasons();
-//		generateCounterparts();
-//		buildAnalysis();
-//		// prediction();
-//		/* --- VERIFY --- */
-//		verify();
+		/* --- ANALYZE --- */
+		timeline();
+		visualizeVulnerabilitySeasons();
+		generateCounterparts();
+		buildAnalysis();
+		summaryStatistics();
+		// prediction();
+		/* --- VERIFY --- */
+		verify();
 		log.info("Done.");
 	}
 
@@ -210,7 +212,7 @@ public class RebuildHistory {
 		log.info("Running db verifications...");
 		DBVerifyRunner runner = new DBVerifyRunner(dbUtil);
 		runner.add(new CodeChurnForAllCommits());
-		runner.add(new ComponentForAllFilepath());
+		// runner.add(new ComponentForAllFilepath());
 		runner.add(new LOCForAllCommitFilepaths());
 		runner.add(new AllCVEToGitInAnalysis());
 		runner.run();
@@ -218,7 +220,7 @@ public class RebuildHistory {
 
 	private void visualizeVulnerabilitySeasons() throws Exception {
 		log.info("Building visualization of vulnerability seasons...");
-		// new ActiveVulnHeatMap().makeVisual(dbUtil, props);
+		new ActiveVulnHeatMap().makeVisual(dbUtil, props);
 	}
 
 	private void generateCounterparts() throws Exception {
@@ -250,6 +252,11 @@ public class RebuildHistory {
 	private void updateSLOC() throws Exception {
 		log.info("Updating LOC for each commit...");
 		new GitLogLOC().update(dbUtil, new File(datadir, props.getProperty("history.churn.loc_at_rev")));
+	}
+
+	private void summaryStatistics() throws Exception {
+		log.info("Computing summary statistics...");
+		new SumStatsVCC(dbUtil).compute();
 	}
 
 }

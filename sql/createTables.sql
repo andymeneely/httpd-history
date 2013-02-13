@@ -58,7 +58,7 @@ CREATE TABLE GitChurnAuthorsAffected(
 CREATE TABLE GitChurnEffectiveAuthors(
   ID int(10) unsigned NOT NULL auto_increment,
   Commit VARCHAR(40) NOT NULL,
-  Filepath varchar(500) NOT NULL,
+  Filepath varchar(100) NOT NULL,
   EffectiveAuthor VARCHAR(40) NOT NULL,
   PRIMARY KEY  (`ID`)
 ) ENGINE=MyISAM;
