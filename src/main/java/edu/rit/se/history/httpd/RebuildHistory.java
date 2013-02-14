@@ -82,6 +82,7 @@ public class RebuildHistory {
 		updateSLOC();
 		computeRepoLog();
 		computeRecentChurn();
+		computeKnownPastVulnerable();
 		/* --- ANALYZE --- */
 		timeline();
 		visualizeVulnerabilitySeasons();
