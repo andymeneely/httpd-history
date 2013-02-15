@@ -12,7 +12,7 @@ public class Peach {
 	public void compute(DBUtil dbUtil, long recentPeriod) throws Exception {
 		Connection conn = dbUtil.getConnection();
 		
-		String query = "SELECT r.filepath, r.commit, r.authordate, ( "
+		/*String query = "SELECT r.filepath, r.commit, r.authordate, ( "
 				+ "( SELECT count(distinct effectiveauthor) FROM gitchurneffectiveauthors a "
 				+ " INNER JOIN repolog _r ON a.commit = _r.commit AND a.filepath = _r.filepath "
 				+ "	 WHERE effectiveauthor IN (SELECT effectiveauthor FROM gitchurneffectiveauthors b "
@@ -23,13 +23,44 @@ public class Peach {
 				+ "(" + " SELECT count(effectiveauthor) FROM gitchurneffectiveauthors c "
 				+ " WHERE c.commit = r.commit AND c.filepath = r.filepath " + " ) " + "	)*100 as PEACh "
 				+ " FROM Repolog r";
+*/
+		
+		String query ="UPDATE Gitlogfiles g SET peach = " +  
+				"( SELECT count(distinct effectiveauthor) FROM gitchurneffectiveauthors a "+ 
+				"			WHERE a.effectiveauthor IN ( "+
+				"								SELECT effectiveauthor FROM gitchurneffectiveauthors b "+
+				"									WHERE b.commit = g.commit AND b.filepath = g.filepath "+ 
+				"								) "+
+				"			AND (a.commit != g.commit OR a.filepath != g.filepath) "+
+                "            AND a.authordate <= g.authordate AND DATEDIFF(g.authordate, a.authordate) <= ? "+
+				") / EffectiveAuthors ";
+		
+		String upEAQuery = "UPDATE Gitlogfiles g SET effectiveAuthors = ( " +
+    					"SELECT count(effectiveauthor) FROM gitchurneffectiveauthors c " +
+    					 "WHERE c.commit = g.commit AND c.filepath = g.filepath " +    					
+     					")";
+		
+		String peachQuery = "SELECT g.filepath, g.commit, g.authordate,  "+
+								"( SELECT count(distinct effectiveauthor) FROM gitchurneffectiveauthors a "+
+								"			WHERE a.effectiveauthor IN ( "+
+								"								SELECT effectiveauthor FROM gitchurneffectiveauthors b "+
+								"									WHERE b.commit = g.commit AND b.filepath = g.filepath  "+
+								"								) "+
+								"			AND (a.commit != g.commit OR a.filepath != g.filepath) "+
+                                "           AND a.authordate <= g.authordate AND DATEDIFF(g.authordate, a.authordate) <= ? "+
+								") /  EffectiveAuthors as PEACh "+
+                		        "FROM Gitlogfiles g ";
 
 		String upQuery = "UPDATE gitlogfiles SET peach = ? WHERE commit = ? AND filepath = ?";
-		PreparedStatement ps = conn.prepareStatement(query);
+		PreparedStatement psEAUpdate = conn.prepareStatement(upEAQuery);
+		PreparedStatement psPeachQuery = conn.prepareStatement(peachQuery);
 		PreparedStatement psUpdate = conn.prepareStatement(upQuery);
-		ps.setLong(1, recentPeriod);
-		log.debug("Executing query...");
-		ResultSet rs = ps.executeQuery();
+		
+		log.debug("Updating effective authors...");
+		psEAUpdate.executeUpdate();
+		/*log.debug("Executing Peach Query...");
+		psPeachQuery.setLong(1, recentPeriod);
+		ResultSet rs = psPeachQuery.executeQuery();		 
 		log.debug("Processing results...");
 		while (rs.next()) {
 			psUpdate.setInt(1, rs.getInt("peach"));
@@ -38,7 +69,11 @@ public class Peach {
 			psUpdate.addBatch();
 		}
 		log.debug("Executing update...");
-		psUpdate.executeBatch();
+		psUpdate.executeBatch();*/
+		log.debug("Executing Peach update...");
+		PreparedStatement psPeachUpdate = conn.prepareStatement(query);
+		psPeachUpdate.setLong(1, recentPeriod);
+		psPeachUpdate.executeUpdate();
 		conn.close();
 
 	}
