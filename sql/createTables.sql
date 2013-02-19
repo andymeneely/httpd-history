@@ -44,6 +44,7 @@ CREATE TABLE GitLogFiles (
   PEACh DOUBLE,
   RecentAuthorsAffected int(10) unsigned,
   LinesOfCode int(10) unsigned,
+  KnownPastVulnerable ENUM('Yes','No'),
   PRIMARY KEY  (`ID`)
 ) ENGINE=MyISAM;
 

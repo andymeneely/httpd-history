@@ -18,7 +18,7 @@ import com.google.gdata.util.ServiceException;
 
 import edu.rit.se.history.httpd.analysis.BayesianPrediction;
 import edu.rit.se.history.httpd.analysis.Counterparts;
-import edu.rit.se.history.httpd.analysis.Peach;
+import edu.rit.se.history.httpd.analysis.KnownVulnerable;
 import edu.rit.se.history.httpd.analysis.RecentAuthorsAffected;
 import edu.rit.se.history.httpd.analysis.RecentChurn;
 import edu.rit.se.history.httpd.analysis.RecentPIC;
@@ -81,7 +81,8 @@ public class RebuildHistory {
 		updateComponent();
 		updateSLOC();
 		computeRepoLog();
-//		computeRecentChurn();
+		computeRecentChurn();
+		computeKnownPastVulnerable();
 		/* --- ANALYZE --- */
 		timeline();
 		visualizeVulnerabilitySeasons();
@@ -181,8 +182,8 @@ public class RebuildHistory {
 		new RecentPIC().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
 		log.info("Computing recent Authors Affected...");
 		new RecentAuthorsAffected().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
-		log.info("Computing PEACh metric...");
-		new Peach().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
+		// log.info("Computing PEACh metric...");
+		// new Peach().compute(dbUtil, Long.parseLong(props.getProperty("history.churn.recent.step")));
 		// log.info("Computing component churn...");
 		// new ComponentChurn().compute(dbUtil,
 		// Long.parseLong(props.getProperty("history.churn.recent.step")));
@@ -252,6 +253,11 @@ public class RebuildHistory {
 	private void updateSLOC() throws Exception {
 		log.info("Updating LOC for each commit...");
 		new GitLogLOC().update(dbUtil, new File(datadir, props.getProperty("history.churn.loc_at_rev")));
+	}
+
+	private void computeKnownPastVulnerable() throws Exception {
+		log.info("Updating whether or not the file was known to be vulnerable...");
+		new KnownVulnerable().compute(dbUtil);
 	}
 
 	private void summaryStatistics() throws Exception {
