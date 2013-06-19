@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-#require 'csv'
+require 'csv'
 require 'mechanize'
 
 a = Mechanize.new
