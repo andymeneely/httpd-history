@@ -1,17 +1,21 @@
 #!/usr/bin/env ruby
-require 'csv'
-require 'mechanize'
+require 'nokogiri'
+require 'trollop'
 
-a = Mechanize.new
-
-CSV.foreach("bugs-2013-06-18.csv") do | row |
-  bug_id = row[0].to_i
-  table = {}
-  #puts "Downloading bug #{bug_id}..."
-  a.get("https://issues.apache.org/bugzilla/show_bug.cgi?ctype=xml&id=#{bug_id}") do | page |
-    puts "#{bug_id}\t#{page.search("//commentid").size}"
-    File.open("./xml/#{bug_id}.xml","w+"){ |file| file.write(page.body) }
-  end
+opts = Trollop::options do
+  banner "Count the number of comments in Bugzlla bugs stored in xml files"
+  opt :xmls, "The xml/ directory of Bugzillas", :default => './xml/'
+  opt :output, "The output file of this data", :default => 'comment-counts.txt'
 end
 
-p "Done!"
+Trollop::die "xml directory must be a directory" unless Dir.exists?(opts[:xmls])
+
+Dir.chdir(opts[:xmls])
+
+Dir.glob("*.xml") do |file|
+  xml = Nokogiri::XML(File.open(file,"r"))
+  id = xml.at_xpath("//bug_id").content.to_i
+  num_comments = xml.xpath("//commentid").size
+  puts "#{id}\t#{num_comments}"
+end
+
