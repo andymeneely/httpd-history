@@ -5,7 +5,6 @@ require 'trollop'
 opts = Trollop::options do
   banner "Count the number of comments in Bugzlla bugs stored in xml files"
   opt :xmls, "The xml/ directory of Bugzillas", :default => './xml/'
-  opt :output, "The output file of this data", :default => 'comment-counts.txt'
 end
 
 Trollop::die "xml directory must be a directory" unless Dir.exists?(opts[:xmls])
