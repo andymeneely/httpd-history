@@ -2,6 +2,7 @@
 require 'csv'
 require 'mechanize'
 require 'ruby-progressbar'
+require 'time'
 
 a = Mechanize.new
 
@@ -10,7 +11,7 @@ bugfile = "dadd-random.txt"
 
 num_files = File.open(bugfile).readlines.size
 
-puts "Downloading #{num_files} files into xml/\nThis could take about #{num_files/20} minutes.\n"
+puts "Downloading #{num_files} files into xml/\nThis could take about #{num_files/360} minutes.\n"
 progress = ProgressBar.create(:starting_at => 0, :total => num_files)
 
 counter = 0
