@@ -20,11 +20,25 @@ if opts[:bugs].nil? || opts[:bugs].eql?('')
   Dir.chdir(pwd)
 else
   files = File.open(opts[:bugs]).readlines.collect {|f| f.strip + ".xml" }
-  puts files
+end
+
+def parent(file)
+  begin
+    Nokogiri::XML(File.open("#{file.at_xpath("//dup_id").content}.xml","r"))
+  rescue # File doesn't exist?
+    nil
+  end
 end
 
 def read_bug(file)
   xml = Nokogiri::XML(File.open(file,"r"))
+
+  # Go right to the parent bug if this is a duplicate
+  xml = parent(xml) if xml.at_xpath("//resolution").content.eql?("DUPLICATE")
+  if xml.nil? #Duplicate of a file that doesn't exist
+    puts "Duplicate of a non-HTTPD bug"
+    nil
+  end
 
   # Query the XML for stuff
   id = xml.at_xpath("//bug_id").content.to_i
@@ -38,7 +52,7 @@ def read_bug(file)
   comment_ids = xml.xpath("//commentid")
   commentor_nodes = xml.xpath("//who")
   reporter = xml.at_xpath("//reporter").content
-  
+
   # Pull the commentors
   commentors = []
   commentor_nodes.each { |c| commentors << c.content }
@@ -70,10 +84,11 @@ def read_bug(file)
 
 end
 
+puts "ID\tCommments\tCommentors\tVotes\tPatches\tFiles in Patches\tReplies\tNon-Reporter Comments\tMention RFC?\tPriority\tSeverity\tStatus\tResolution"
+
 Dir.chdir(opts[:xmls]) do 
   files.each do |file|
     read_bug file
   end
 end
 
-puts "ID\tCommments\tCommentors\tVotes\tPatches\tFiles in Patches\tReplies\tNon-Reporter Comments\tMention RFC?\tPriority\tSeverity\tStatus\tResolution"
