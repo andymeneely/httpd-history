@@ -85,14 +85,18 @@ def read_bug(file)
   # What is the average word length?
   non_reporter_word_avg = 0.0
   comment_nodes.each { |c| non_reporter_word_avg += Tokenizer::Tokenizer.new.tokenize(c.content).size }
-  non_reporter_word_avg /= comment_nodes.size 
+  non_reporter_word_avg /= comment_nodes.size
+
+  # How many comments say that another bug was a duplicate of this bug? (child duplicates)
+  dups = 0
+  comment_nodes.each{ |c| dups+=1 if c.content.include?("*** Bug") && c.content.include?("has been marked as a duplicate of this bug. ***")}
 
   # Print to console!
-  puts "#{id}\t#{comment_ids.size}\t#{commentors.size}\t#{votes}\t#{ccs.size}\t#{patches.size}\t#{patch_files.size}\t#{replies}\t#{non_reporter_comments}\t#{non_reporter_word_avg}\t#{mention_rfc}\t#{priority}\t#{severity}\t#{status}\t#{resolution}"
+  puts "#{id}\t#{comment_ids.size}\t#{commentors.size}\t#{votes}\t#{ccs.size}\t#{patches.size}\t#{patch_files.size}\t#{replies}\t#{non_reporter_comments}\t#{non_reporter_word_avg}\t#{mention_rfc}\t#{dups}\t#{priority}\t#{severity}\t#{status}\t#{resolution}"
 
 end
 
-puts "ID\tCommments\tCommentors\tVotes\tCCs\tPatches\tFiles in Patches\tReplies\tNon-Reporter Comments\tNon-Reporter Word Avg\tMention RFC?\tPriority\tSeverity\tStatus\tResolution"
+puts "ID\tCommments\tCommentors\tVotes\tCCs\tPatches\tFiles in Patches\tReplies\tNon-Reporter Comments\tNon-Reporter Word Avg\tMention RFC?\tDuplicate Children?\tPriority\tSeverity\tStatus\tResolution"
 
 Dir.chdir(opts[:xmls]) do 
   files.each do |file|
