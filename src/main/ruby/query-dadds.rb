@@ -2,6 +2,7 @@
 require 'nokogiri'
 require 'trollop'
 require 'base64'
+require 'tokenizer'
 
 pwd = Dir.getwd
 
@@ -52,6 +53,7 @@ def read_bug(file)
   comment_ids = xml.xpath("//commentid")
   commentor_nodes = xml.xpath("//who")
   reporter = xml.at_xpath("//reporter").content
+  comment_nodes = xml.xpath("//thetext")
 
   # Pull the commentors
   commentors = []
@@ -79,12 +81,17 @@ def read_bug(file)
   mention_rfc = "No"
   comments.each{|c| mention_rfc = "Yes" if c.content.downcase.include? "rfc"}
 
+  # What is the average word length?
+  non_reporter_word_avg = 0.0
+  comment_nodes.each { |c| non_reporter_word_avg += Tokenizer::Tokenizer.new.tokenize(c.content).size }
+  non_reporter_word_avg /= comment_nodes.size 
+
   # Print to console!
-  puts "#{id}\t#{comment_ids.size}\t#{commentors.size}\t#{votes}\t#{patches.size}\t#{patch_files.size}\t#{replies}\t#{non_reporter_comments}\t#{mention_rfc}\t#{priority}\t#{severity}\t#{status}\t#{resolution}"
+  puts "#{id}\t#{comment_ids.size}\t#{commentors.size}\t#{votes}\t#{patches.size}\t#{patch_files.size}\t#{replies}\t#{non_reporter_comments}\t#{non_reporter_word_avg}\t#{mention_rfc}\t#{priority}\t#{severity}\t#{status}\t#{resolution}"
 
 end
 
-puts "ID\tCommments\tCommentors\tVotes\tPatches\tFiles in Patches\tReplies\tNon-Reporter Comments\tMention RFC?\tPriority\tSeverity\tStatus\tResolution"
+puts "ID\tCommments\tCommentors\tVotes\tPatches\tFiles in Patches\tReplies\tNon-Reporter Comments\tNon-Reporter Word Avg\tMention RFC?\tPriority\tSeverity\tStatus\tResolution"
 
 Dir.chdir(opts[:xmls]) do 
   files.each do |file|
