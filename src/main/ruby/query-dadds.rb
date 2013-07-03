@@ -44,6 +44,7 @@ def read_bug(file)
   # Query the XML for stuff
   id = xml.at_xpath("//bug_id").content.to_i
   patches = xml.xpath("//attachment[@ispatch=1]")
+  ccs = xml.xpath("//cc")
   votes = xml.at_xpath("//votes").content.to_i
   priority = xml.at_xpath("//priority").content
   severity = xml.at_xpath("//bug_severity").content
@@ -87,11 +88,11 @@ def read_bug(file)
   non_reporter_word_avg /= comment_nodes.size 
 
   # Print to console!
-  puts "#{id}\t#{comment_ids.size}\t#{commentors.size}\t#{votes}\t#{patches.size}\t#{patch_files.size}\t#{replies}\t#{non_reporter_comments}\t#{non_reporter_word_avg}\t#{mention_rfc}\t#{priority}\t#{severity}\t#{status}\t#{resolution}"
+  puts "#{id}\t#{comment_ids.size}\t#{commentors.size}\t#{votes}\t#{ccs.size}\t#{patches.size}\t#{patch_files.size}\t#{replies}\t#{non_reporter_comments}\t#{non_reporter_word_avg}\t#{mention_rfc}\t#{priority}\t#{severity}\t#{status}\t#{resolution}"
 
 end
 
-puts "ID\tCommments\tCommentors\tVotes\tPatches\tFiles in Patches\tReplies\tNon-Reporter Comments\tNon-Reporter Word Avg\tMention RFC?\tPriority\tSeverity\tStatus\tResolution"
+puts "ID\tCommments\tCommentors\tVotes\tCCs\tPatches\tFiles in Patches\tReplies\tNon-Reporter Comments\tNon-Reporter Word Avg\tMention RFC?\tPriority\tSeverity\tStatus\tResolution"
 
 Dir.chdir(opts[:xmls]) do 
   files.each do |file|
