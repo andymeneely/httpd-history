@@ -9,11 +9,13 @@ pwd = Dir.getwd
 opts = Trollop::options do
   banner "Count the number of comments in Bugzlla bugs stored in xml files"
   opt :xmls, "The xml/ directory of Bugzillas", :default => './xml/'
+  opt :committers, "A listing of Bugzilla commentor IDs who are also committers", :default => 'committer-bugzilla-ids.txt'
   opt :bugs, "A file with the bug IDs to collect", :default => ''
 end
 
 Trollop::die "xml directory must be a directory" unless Dir.exists?(opts[:xmls])
 Trollop::die "bugs file not found!" unless File.exists?(opts[:bugs]) || opts[:bugs].eql?('')
+Trollop::die "committer file not found!" unless File.exists?(opts[:committers])
 
 if opts[:bugs].nil? || opts[:bugs].eql?('')
   Dir.chdir(opts[:xmls]); 
@@ -21,6 +23,13 @@ if opts[:bugs].nil? || opts[:bugs].eql?('')
   Dir.chdir(pwd)
 else
   files = File.open(opts[:bugs]).readlines.collect {|f| f.strip + ".xml" }
+end
+
+# Load committer bugzilla IDs
+@committer_bugzillas = File.open(opts[:committers]).readlines.collect{|c| c.strip}
+
+def committer? (bugzilla_commentor)
+  @committer_bugzillas.include? bugzilla_commentor
 end
 
 def parent(file)
@@ -70,8 +79,16 @@ def read_bug(file)
     prev = c
   end
 
+  # Count committer comments
+  committer_comments=0
+  commentors.each{|c| committer_comments+=1 if committer? c}
+
   #Now let's work from a unique list of commentors
   commentors.uniq!
+
+  #Count committers
+  committers=0
+  commentors.each{|c| committers+=1 if committer? c}
 
   # Count the number of comments not made by the reporter
   non_reporter_comments = 0
@@ -104,11 +121,11 @@ def read_bug(file)
   comment_nodes.each{ |c| dups+=1 if c.content.include?("*** Bug") && c.content.include?("has been marked as a duplicate of this bug. ***")}
 
   # Print to console!
-  puts "#{id}\t#{comment_ids.size}\t#{commentors.size}\t#{votes}\t#{ccs.size}\t#{patches.size}\t#{patch_files.size}\t#{replies}\t#{non_reporter_comments}\t#{non_reporter_word_avg}\t#{nonrep_exchanges}\t#{exchanges}\t#{mention_rfc}\t#{dups}\t#{priority}\t#{severity}\t#{status}\t#{resolution}"
+  puts "#{id}\t#{comment_ids.size}\t#{committer_comments}\t#{commentors.size}\t#{committers}\t#{votes}\t#{ccs.size}\t#{patches.size}\t#{patch_files.size}\t#{replies}\t#{non_reporter_comments}\t#{non_reporter_word_avg}\t#{nonrep_exchanges}\t#{exchanges}\t#{mention_rfc}\t#{dups}\t#{priority}\t#{severity}\t#{status}\t#{resolution}"
 
 end
 
-puts "ID\tCommments\tCommentors\tVotes\tCCs\tPatches\tFiles in Patches\tReplies\tNon-Rep. Comments\tNon-Rep. Word Avg\tNon-Rep. Exchanges\tExchanges\tRFC?\tDups\tPriority\tSeverity\tStatus\tResolution"
+puts "ID\tCommments\tCommitter Comments\tCommentors\tCommentor Committers\tVotes\tCCs\tPatches\tFiles in Patches\tReplies\tNon-Rep. Comments\tNon-Rep. Word Avg\tNon-Rep. Exchanges\tExchanges\tRFC?\tDups\tPriority\tSeverity\tStatus\tResolution"
 
 Dir.chdir(opts[:xmls]) do 
   files.each do |file|
