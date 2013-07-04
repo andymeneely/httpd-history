@@ -59,6 +59,18 @@ def read_bug(file)
   # Pull the commentors
   commentors = []
   commentor_nodes.each { |c| commentors << c.content }
+
+  # Count exchanges
+  prev = commentors[0]
+  exchanges = 0
+  nonrep_exchanges=0
+  commentors.each do |c|
+    nonrep_exchanges +=1 if !c.eql?(prev) && !c.eql?(reporter) && !prev.eql?(reporter)
+    exchanges +=1 if !c.eql?(prev)
+    prev = c
+  end
+
+  #Now let's work from a unique list of commentors
   commentors.uniq!
 
   # Count the number of comments not made by the reporter
@@ -92,11 +104,11 @@ def read_bug(file)
   comment_nodes.each{ |c| dups+=1 if c.content.include?("*** Bug") && c.content.include?("has been marked as a duplicate of this bug. ***")}
 
   # Print to console!
-  puts "#{id}\t#{comment_ids.size}\t#{commentors.size}\t#{votes}\t#{ccs.size}\t#{patches.size}\t#{patch_files.size}\t#{replies}\t#{non_reporter_comments}\t#{non_reporter_word_avg}\t#{mention_rfc}\t#{dups}\t#{priority}\t#{severity}\t#{status}\t#{resolution}"
+  puts "#{id}\t#{comment_ids.size}\t#{commentors.size}\t#{votes}\t#{ccs.size}\t#{patches.size}\t#{patch_files.size}\t#{replies}\t#{non_reporter_comments}\t#{non_reporter_word_avg}\t#{nonrep_exchanges}\t#{exchanges}\t#{mention_rfc}\t#{dups}\t#{priority}\t#{severity}\t#{status}\t#{resolution}"
 
 end
 
-puts "ID\tCommments\tCommentors\tVotes\tCCs\tPatches\tFiles in Patches\tReplies\tNon-Reporter Comments\tNon-Reporter Word Avg\tMention RFC?\tDuplicate Children?\tPriority\tSeverity\tStatus\tResolution"
+puts "ID\tCommments\tCommentors\tVotes\tCCs\tPatches\tFiles in Patches\tReplies\tNon-Rep. Comments\tNon-Rep. Word Avg\tNon-Rep. Exchanges\tExchanges\tRFC?\tDups\tPriority\tSeverity\tStatus\tResolution"
 
 Dir.chdir(opts[:xmls]) do 
   files.each do |file|
