@@ -11,10 +11,12 @@ opts = Trollop::options do
   opt :xmls, "The xml/ directory of Bugzillas", :default => './xml/'
   opt :committers, "A listing of Bugzilla commentor IDs who are also committers", :default => 'committer-bugzilla-ids.txt'
   opt :bugs, "A file with the bug IDs to collect", :default => ''
+  opt :dadd_map, "A file that maps a bug ID to Yes/No DaDD", :default => ''
 end
 
 Trollop::die "xml directory must be a directory" unless Dir.exists?(opts[:xmls])
 Trollop::die "bugs file not found!" unless File.exists?(opts[:bugs]) || opts[:bugs].eql?('')
+Trollop::die "dadd map file not found!" unless File.exists?(opts[:dadd_map]) || opts[:dadd_map].eql?('')
 Trollop::die "committer file not found!" unless File.exists?(opts[:committers])
 
 if opts[:bugs].nil? || opts[:bugs].eql?('')
@@ -23,6 +25,13 @@ if opts[:bugs].nil? || opts[:bugs].eql?('')
   Dir.chdir(pwd)
 else
   files = File.open(opts[:bugs]).readlines.collect {|f| f.strip + ".xml" }
+end
+
+if !opts[:dadd_map].eql?('')
+  @dadd_map = Hash.new
+  File.open(opts[:dadd_map]).readlines.each do |line|
+    @dadd_map[line.split[0].to_i] = line.split[1]
+  end
 end
 
 # Load committer bugzilla IDs
@@ -44,10 +53,12 @@ def read_bug(file)
   xml = Nokogiri::XML(File.open(file,"r"))
 
   # Go right to the parent bug if this is a duplicate
-  xml = parent(xml) if xml.at_xpath("//resolution").content.eql?("DUPLICATE")
-  if xml.nil? #Duplicate of a file that doesn't exist
-    puts "Duplicate of a non-HTTPD bug"
-    nil
+  while(xml.at_xpath("//resolution").content.eql?("DUPLICATE"))
+    xml = parent(xml)
+    if xml.nil? #Duplicate of a file that doesn't exist
+      $stderr.puts "#{file} leads to a duplicate of a non-HTTPD bug"
+      return nil
+    end
   end
 
   # Query the XML for stuff
@@ -133,12 +144,23 @@ def read_bug(file)
   dups = 0
   comment_nodes.each{ |c| dups+=1 if c.content.include?("*** Bug") && c.content.include?("has been marked as a duplicate of this bug. ***")}
 
+  # If we specified, add the DaDD stuff
+  dadd_data = ""
+  if !@dadd_map.nil?
+    if @dadd_map[id].nil?
+      dadd_data = "\t??"
+      $stderr.puts "No DaDD map for #{file}"
+    else
+      dadd_data = "\t" << @dadd_map[id]
+    end
+  end
+
   # Print to console!
-  puts "#{id}\t#{comment_ids.size}\t#{committer_comments}\t#{commentors.size}\t#{committers}\t#{rep_committer}\t#{votes}\t#{ccs.size}\t#{patches.size}\t#{patch_files.size}\t#{replies}\t#{non_reporter_comments}\t#{non_reporter_word_avg}\t#{nonrep_exchanges}\t#{exchanges}\t#{opinions}\t#{mention_rfc}\t#{dups}\t#{priority}\t#{severity}\t#{status}\t#{resolution}"
+  puts "#{id}\t#{comment_ids.size}\t#{committer_comments}\t#{commentors.size}\t#{committers}\t#{rep_committer}\t#{votes}\t#{ccs.size}\t#{patches.size}\t#{patch_files.size}\t#{replies}\t#{non_reporter_comments}\t#{non_reporter_word_avg}\t#{nonrep_exchanges}\t#{exchanges}\t#{opinions}\t#{mention_rfc}\t#{dups}\t#{priority}\t#{severity}\t#{status}\t#{resolution}#{dadd_data}"
 
 end
 
-puts "ID\tCommments\tCommitter Comments\tCommentors\tCommentor Committers\tReporter Committer?\tVotes\tCCs\tPatches\tFiles in Patches\tReplies\tNon-Rep. Comments\tNon-Rep. Word Avg\tNon-Rep. Exchanges\tExchanges\tOpinionated Words\tRFC?\tDups\tPriority\tSeverity\tStatus\tResolution"
+puts "ID\tCommments\tCommitter Comments\tCommentors\tCommentor Committers\tReporter Committer?\tVotes\tCCs\tPatches\tFiles in Patches\tReplies\tNon-Rep. Comments\tNon-Rep. Word Avg\tNon-Rep. Exchanges\tExchanges\tOpinionated Words\tRFC?\tDups\tPriority\tSeverity\tStatus\tResolution#{"\tDaDD?" if !opts[:dadd_map].eql?('')}"
 
 Dir.chdir(opts[:xmls]) do 
   files.each do |file|
