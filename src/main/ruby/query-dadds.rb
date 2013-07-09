@@ -90,6 +90,9 @@ def read_bug(file)
   committers=0
   commentors.each{|c| committers+=1 if committer? c}
 
+  #Was the reporter a committer
+  rep_committer = (committer? reporter) ? "Yes" : "No"
+
   # Count the number of comments not made by the reporter
   non_reporter_comments = 0
   commentor_nodes.each { |c| non_reporter_comments+=1 if !reporter.eql?(c.content) }
@@ -116,16 +119,26 @@ def read_bug(file)
   comment_nodes.each { |c| non_reporter_word_avg += Tokenizer::Tokenizer.new.tokenize(c.content).size }
   non_reporter_word_avg /= comment_nodes.size
 
+  # How many opinionated words?
+  # Another common word is "internal"
+  opinion_words = ["disagree", "imho", "imo", "opinion", "think", "suggest"]
+  opinions = 0
+  opinion_words.each do |word|
+    comment_nodes.each do |c|
+      opinions += c.content.downcase.scan(word).size
+    end
+  end
+
   # How many comments say that another bug was a duplicate of this bug? (child duplicates)
   dups = 0
   comment_nodes.each{ |c| dups+=1 if c.content.include?("*** Bug") && c.content.include?("has been marked as a duplicate of this bug. ***")}
 
   # Print to console!
-  puts "#{id}\t#{comment_ids.size}\t#{committer_comments}\t#{commentors.size}\t#{committers}\t#{votes}\t#{ccs.size}\t#{patches.size}\t#{patch_files.size}\t#{replies}\t#{non_reporter_comments}\t#{non_reporter_word_avg}\t#{nonrep_exchanges}\t#{exchanges}\t#{mention_rfc}\t#{dups}\t#{priority}\t#{severity}\t#{status}\t#{resolution}"
+  puts "#{id}\t#{comment_ids.size}\t#{committer_comments}\t#{commentors.size}\t#{committers}\t#{rep_committer}\t#{votes}\t#{ccs.size}\t#{patches.size}\t#{patch_files.size}\t#{replies}\t#{non_reporter_comments}\t#{non_reporter_word_avg}\t#{nonrep_exchanges}\t#{exchanges}\t#{opinions}\t#{mention_rfc}\t#{dups}\t#{priority}\t#{severity}\t#{status}\t#{resolution}"
 
 end
 
-puts "ID\tCommments\tCommitter Comments\tCommentors\tCommentor Committers\tVotes\tCCs\tPatches\tFiles in Patches\tReplies\tNon-Rep. Comments\tNon-Rep. Word Avg\tNon-Rep. Exchanges\tExchanges\tRFC?\tDups\tPriority\tSeverity\tStatus\tResolution"
+puts "ID\tCommments\tCommitter Comments\tCommentors\tCommentor Committers\tReporter Committer?\tVotes\tCCs\tPatches\tFiles in Patches\tReplies\tNon-Rep. Comments\tNon-Rep. Word Avg\tNon-Rep. Exchanges\tExchanges\tOpinionated Words\tRFC?\tDups\tPriority\tSeverity\tStatus\tResolution"
 
 Dir.chdir(opts[:xmls]) do 
   files.each do |file|
