@@ -125,14 +125,18 @@ def read_bug(file)
   mention_rfc = "No"
   comments.each{|c| mention_rfc = "Yes" if c.content.downcase.include? "rfc"}
 
-  # What is the average word length?
-  non_reporter_word_avg = 0.0
-  comment_nodes.each { |c| non_reporter_word_avg += Tokenizer::Tokenizer.new.tokenize(c.content).size }
-  non_reporter_word_avg /= comment_nodes.size
+  # What is the maximum, non-reporter word length?
+  non_reporter_word_max = 0.0
+  comment_nodes.each do |c| 
+    if !reporter.eql?(c.parent.at_xpath("./who").content)
+      words = Tokenizer::Tokenizer.new.tokenize(c.content).size 
+      non_reporter_word_max = words if non_reporter_word_max < words
+    end
+  end
 
   # How many opinionated words?
   # Another common word is "internal"
-  opinion_words = ["disagree", "agree", "imho", "imo", "opinion", "think", "suggest", "+1 "]
+  opinion_words = ["disagree", "agree", "imho", "imo", "opinion", "think", "suggest", "+1 ", "insist", "according to"]
   opinions = 0
   opinion_words.each do |word|
     comment_nodes.each do |c|
@@ -156,11 +160,11 @@ def read_bug(file)
   end
 
   # Print to console!
-  puts "#{id}\t#{comment_ids.size}\t#{committer_comments}\t#{commentors.size}\t#{committers}\t#{rep_committer}\t#{votes}\t#{ccs.size}\t#{patches.size}\t#{patch_files.size}\t#{replies}\t#{non_reporter_comments}\t#{non_reporter_word_avg}\t#{nonrep_exchanges}\t#{exchanges}\t#{opinions}\t#{mention_rfc}\t#{dups}\t#{priority}\t#{severity}\t#{status}\t#{resolution}#{dadd_data}"
+  puts "#{id}\t#{comment_ids.size}\t#{committer_comments}\t#{commentors.size}\t#{committers}\t#{rep_committer}\t#{votes}\t#{ccs.size}\t#{patches.size}\t#{patch_files.size}\t#{replies}\t#{non_reporter_comments}\t#{non_reporter_word_max}\t#{nonrep_exchanges}\t#{exchanges}\t#{opinions}\t#{mention_rfc}\t#{dups}\t#{priority}\t#{severity}\t#{status}\t#{resolution}#{dadd_data}"
 
 end
 
-puts "ID\tCommments\tCommitter Comments\tCommentors\tCommentor Committers\tReporter Committer?\tVotes\tCCs\tPatches\tFiles in Patches\tReplies\tNon-Rep. Comments\tNon-Rep. Word Avg\tNon-Rep. Exchanges\tExchanges\tOpinionated Words\tRFC?\tDups\tPriority\tSeverity\tStatus\tResolution#{"\tDaDD?" if !opts[:dadd_map].eql?('')}"
+puts "ID\tCommments\tCommitter Comments\tCommentors\tCommentor Committers\tReporter Committer?\tVotes\tCCs\tPatches\tFiles in Patches\tReplies\tNon-Rep. Comments\tNon-Rep. Word Max\tNon-Rep. Exchanges\tExchanges\tOpinionated Words\tRFC?\tDups\tPriority\tSeverity\tStatus\tResolution#{"\tDaDD?" if !opts[:dadd_map].eql?('')}"
 
 Dir.chdir(opts[:xmls]) do 
   files.each do |file|
