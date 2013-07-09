@@ -121,7 +121,7 @@ def read_bug(file)
 
   # How many opinionated words?
   # Another common word is "internal"
-  opinion_words = ["disagree", "imho", "imo", "opinion", "think", "suggest"]
+  opinion_words = ["disagree", "agree", "imho", "imo", "opinion", "think", "suggest", "+1 "]
   opinions = 0
   opinion_words.each do |word|
     comment_nodes.each do |c|
