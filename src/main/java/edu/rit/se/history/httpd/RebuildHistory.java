@@ -65,7 +65,7 @@ public class RebuildHistory {
 
 	public void run() throws Exception {
 		/* --- DOWNLOAD STUFF --- */
-		// downloadGoogleDocs(props); //Nobody but Andy really needs to run this
+//		downloadGoogleDocs(props); //Nobody but Andy really needs to run this
 		/* --- CLEAN EVERYTHING --- */
 		rebuildSchema();
 		/* --- LOAD STUFF --- */

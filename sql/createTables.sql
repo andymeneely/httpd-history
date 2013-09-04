@@ -114,6 +114,7 @@ CREATE TABLE CVEToGit (
   Filepath VARCHAR(50) NOT NULL,
   CommitIntroduced VARCHAR(40) NOT NULL,
   CommitFixed VARCHAR(40) NOT NULL,
+  IsBaselineCommit ENUM('Yes', 'No'),
   PRIMARY KEY  (`ID`)
 ) ENGINE=MyISAM;
 
