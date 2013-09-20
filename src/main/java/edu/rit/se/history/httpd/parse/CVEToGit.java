@@ -29,7 +29,7 @@ public class CVEToGit {
 			filepath = line[2].trim();
 			commitIntroduced = line[3].trim();
 			commitFixed = line[4].trim();
-			isBaselineCommit = line[8].trim();
+			isBaselineCommit = line[6].trim();
 			int i = 1;
 			ps.setString(i++, cve);
 			ps.setString(i++, filepath);
