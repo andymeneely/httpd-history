@@ -68,13 +68,13 @@ public class RebuildHistory {
 
 	public void run() throws Exception {
 		/* --- DOWNLOAD STUFF --- */
-//		downloadGoogleDocs(props); //Nobody but Andy really needs to run this
+		//downloadGoogleDocs(props); //Nobody but Andy really needs to run this
 		/* --- CLEAN EVERYTHING --- */
 		rebuildSchema();
 		/* --- LOAD STUFF --- */
 		loadCVEToGit();
 		loadGitLog();
-		//loadComponents();
+		// loadComponents();
 		loadReleaseHistory();
 		/* --- OPTIMIZE & INDEX TABLES --- */
 		optimizeTables();
@@ -219,9 +219,8 @@ public class RebuildHistory {
 		// runner.add(new ComponentForAllFilepath());
 		runner.add(new LOCForAllCommitFilepaths());
 		runner.add(new RecentPICForAllCommits());
-		runner.add(new PeachForAllCommit());
+//		runner.add(new PeachForAllCommit());
 		runner.add(new RecentPICForAllCommits());
-		runner.add(new PeachForAllCommit());
 		runner.run();
 	}
 
