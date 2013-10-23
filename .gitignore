@@ -5,3 +5,5 @@ build.properties
 httpdhistory.properties
 bin/
 bisect.properties
+.classpath
+.settings/*

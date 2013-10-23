@@ -17,6 +17,7 @@ import org.chaoticbits.devactivity.testutil.dbverify.DBVerifyRunner;
 import com.google.gdata.util.ServiceException;
 
 import edu.rit.se.history.httpd.analysis.BayesianPrediction;
+import edu.rit.se.history.httpd.analysis.ChurnConsistency;
 import edu.rit.se.history.httpd.analysis.Counterparts;
 import edu.rit.se.history.httpd.analysis.KnownVulnerable;
 import edu.rit.se.history.httpd.analysis.RecentAuthorsAffected;
@@ -70,31 +71,33 @@ public class RebuildHistory {
 		/* --- DOWNLOAD STUFF --- */
 		//downloadGoogleDocs(props); //Nobody but Andy really needs to run this
 		/* --- CLEAN EVERYTHING --- */
-		rebuildSchema();
+		//////rebuildSchema();
 		/* --- LOAD STUFF --- */
-		loadCVEToGit();
-		loadGitLog();
+	//////loadCVEToGit();
+	//////loadGitLog();
 		// loadComponents();
-		loadReleaseHistory();
+	//////loadReleaseHistory();
 		/* --- OPTIMIZE & INDEX TABLES --- */
-		optimizeTables();
+	//////optimizeTables();
 		/* --- COMPUTE & UPDATE TABLES --- */
-		updateGitRelease();
-		updateChurn();
-		updateComponent();
-		updateSLOC();
-		computeRepoLog();
-		computeRecentChurn();
-		computeKnownPastVulnerable();
+	//////updateGitRelease();
+	//////updateChurn();
+	//////	updateComponent();
+	//////	updateSLOC();
+	//////	computeRepoLog();
+	//////	computeRecentChurn();
+	//////	computeKnownPastVulnerable();
+		churnConsistency();	
 		/* --- ANALYZE --- */
-		timeline();
-		visualizeVulnerabilitySeasons();
-		generateCounterparts();
-		buildAnalysis();
-		summaryStatistics();
+	//////	timeline();
+	//////	visualizeVulnerabilitySeasons();
+	//////	generateCounterparts();
+	//////	buildAnalysis();
+	//////	summaryStatistics();
 		// prediction();
 		/* --- VERIFY --- */
-		verify();
+		
+	//////	verify();
 		log.info("Done.");
 	}
 
@@ -268,6 +271,12 @@ public class RebuildHistory {
 	private void summaryStatistics() throws Exception {
 		log.info("Computing summary statistics...");
 		new SumStatsVCC(dbUtil).compute();
+	}
+	
+	private void churnConsistency() throws Exception {
+		log.info("Computing churn consistency...");
+		new ChurnConsistency().parse(dbUtil, new File(datadir, props.getProperty("history.gitlog.churn")), new File( datadir, props.getProperty("history.churn.consistency")), new File( datadir, props.getProperty("history.churn.dir")));
+		//new ChurnConsistency().projectChurn(dbUtil, new File( datadir, props.getProperty("history.churn.project")));
 	}
 
 }
