@@ -82,7 +82,7 @@ public class MailingListParser {
 			System.out.println("Error: Bad email input file." + e.getMessage());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("IO Error: Loading files " + e.getMessage());
 		}
 	}
 
@@ -111,15 +111,15 @@ public class MailingListParser {
 		}
 	}
 
-	private boolean textIsHtml = false;
+	private static boolean textIsHtml = false;
 
 	/**
 	 * Return the primary text content of the message.
 	 */
-	private String getText(Part p) throws MessagingException, IOException {
+	private static String getText(Part p) throws MessagingException, IOException {
 		if (p.isMimeType("text/*")) {
 			String s = (String) p.getContent();
-			this.textIsHtml = p.isMimeType("text/html");
+			textIsHtml = p.isMimeType("text/html");
 			return s;
 		}
 
