@@ -34,63 +34,59 @@ import com.mongodb.MongoClient;
 public class MailingListParser {
 
 	final static String PATH_TO_FILES = "C:/mailinglist/downloads";
+	DBCollection emailCollection;
 
 	public static void main(String[] args) {
 		MailingListParser mailingListParser = new MailingListParser();
+		mailingListParser.setUpDB();
 		mailingListParser.loadFile(PATH_TO_FILES);
-		
-		
+
 		File folder = new File(PATH_TO_FILES);
 		File[] listOfFiles = folder.listFiles();
 
 		for (int i = 0; i < listOfFiles.length; i++) {
-		  File file = listOfFiles[i];
-		  if (file.isFile() && file.getName().endsWith(".txt")) {
-		    String content;
-			try {
-				content = readFile(file.getAbsolutePath(), StandardCharsets.UTF_8);
-			
-		    mailingListParser.loadFile(content);	
-		    System.out.println("Finished loading: " + file.getName());
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			File file = listOfFiles[i];
+			if (file.isFile() && file.getName().endsWith(".txt")) {
+				String content;
+				try {
+					content = readFile(file.getAbsolutePath(), StandardCharsets.UTF_8);
+
+					mailingListParser.loadFile(content);
+					System.out.println("Finished loading: " + file.getName());
+				} catch (IOException e) {
+					System.out.println("Error: There is a problem reading the files. " + e.getMessage());
+				}
 			}
-		  } 
-		}		
+		}
 	}
 
 	private void loadFile(String content) {
-		try {		
-			String[] textMessages = content.split("\nFrom ");
 
-			for (int i = 1; i < textMessages.length; i++) {
-				textMessages[i] = "From " + textMessages[i];
+		String[] textMessages = content.split("\nFrom ");
+
+		for (int i = 1; i < textMessages.length; i++) {
+			textMessages[i] = "From " + textMessages[i];
+		}
+		parseEmails(textMessages);
+	}
+
+	private void parseEmails(String[] textMessages) {
+		MimeMessage[] messages = new MimeMessage[textMessages.length];
+		Session s = Session.getDefaultInstance(new Properties());
+		try {
+			for (int i = 0; i < textMessages.length; i++) {
+				messages[i] = new MimeMessage(s, IOUtils.toInputStream(textMessages[i], "UTF-8"));
 			}
-
-			MimeMessage[] messages = parseEmails(textMessages);
-			saveToDB(messages);
-
-		} catch (Exception e) {
+			saveToDB(messages); // save the emails to the database.
+		} catch (MessagingException e) {
+			System.out.println("Error: Bad email input file." + e.getMessage());
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
-	private MimeMessage[] parseEmails(String[] textMessages) throws MessagingException, IOException {
-		MimeMessage[] messages = new MimeMessage[textMessages.length];
-		Session s = Session.getDefaultInstance(new Properties());
-		for (int i = 0; i < textMessages.length; i++) {
-			messages[i] = new MimeMessage(s, IOUtils.toInputStream(textMessages[i], "UTF-8"));
-		}
-		return messages;
-	}
-
-	private void saveToDB(MimeMessage[] messages) throws UnknownHostException, MessagingException, IOException {
-		// mongoDB set up
-		MongoClient mongo = new MongoClient("localhost", 27017);
-		DB db = mongo.getDB("mailinglist");
-		DBCollection emailCollection = db.getCollection("email");
+	private void saveToDB(MimeMessage[] messages) throws MessagingException, IOException {
 
 		for (int i = 0; i < messages.length; i++) {
 			BasicDBObject email = new BasicDBObject();
@@ -102,7 +98,19 @@ public class MailingListParser {
 			emailCollection.insert(email);
 		}
 	}
-	
+
+	private void setUpDB() {
+		// mongoDB set up
+		MongoClient mongo;
+		try {
+			mongo = new MongoClient("localhost", 27017);
+			DB db = mongo.getDB("mailinglist");
+			this.emailCollection = db.getCollection("email");
+		} catch (UnknownHostException e) {
+			System.out.println("Error: There was an while setting up the database :" + e.getMessage());
+		}
+	}
+
 	private boolean textIsHtml = false;
 
 	/**
