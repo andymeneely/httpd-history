@@ -30,6 +30,7 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.MongoClient;
+import com.sun.mail.util.QPDecoderStream;
 
 public class MailingListParser {
 
@@ -39,9 +40,12 @@ public class MailingListParser {
 	public static void main(String[] args) {
 		MailingListParser mailingListParser = new MailingListParser();
 		mailingListParser.setUpDB();
-		mailingListParser.loadFile(PATH_TO_FILES);
+		mailingListParser.loadFolder(PATH_TO_FILES);
 
-		File folder = new File(PATH_TO_FILES);
+	}
+
+	private void loadFolder(String path) {
+		File folder = new File(path);
 		File[] listOfFiles = folder.listFiles();
 
 		for (int i = 0; i < listOfFiles.length; i++) {
@@ -50,14 +54,16 @@ public class MailingListParser {
 				String content;
 				try {
 					content = readFile(file.getAbsolutePath(), StandardCharsets.UTF_8);
-
-					mailingListParser.loadFile(content);
+					this.loadFile(content);
 					System.out.println("Finished loading: " + file.getName());
+
 				} catch (IOException e) {
-					System.out.println("Error: There is a problem reading the files. " + e.getMessage());
+					System.out.println("Error: There is a problem reading file " + file.getName() + " - MSG: "
+							+ e.getMessage());
 				}
 			}
 		}
+
 	}
 
 	private void loadFile(String content) {
@@ -75,14 +81,15 @@ public class MailingListParser {
 		Session s = Session.getDefaultInstance(new Properties());
 		try {
 			for (int i = 0; i < textMessages.length; i++) {
-				messages[i] = new MimeMessage(s, IOUtils.toInputStream(textMessages[i], "UTF-8"));
+				InputStream is = new ByteArrayInputStream(textMessages[i].getBytes());
+				messages[i] = new MimeMessage(s, is);
 			}
 			saveToDB(messages); // save the emails to the database.
 		} catch (MessagingException e) {
 			System.out.println("Error: Bad email input file." + e.getMessage());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			System.out.println("IO Error: Loading files " + e.getMessage());
+			System.out.println("IO Error: Loading email " + " " + e.getMessage());
 		}
 	}
 
@@ -96,6 +103,7 @@ public class MailingListParser {
 			email.put("content", getText(messages[i]));
 			email.put("sentDate", messages[i].getSentDate());
 			emailCollection.insert(email);
+
 		}
 	}
 
@@ -117,7 +125,17 @@ public class MailingListParser {
 	 * Return the primary text content of the message.
 	 */
 	private static String getText(Part p) throws MessagingException, IOException {
-		if (p.isMimeType("text/*")) {
+		
+		if (p.isMimeType("text/enriched")){
+			InputStream is = (InputStream) p.getContent();			
+			StringWriter writer = new StringWriter();
+			IOUtils.copy(is, writer, StandardCharsets.UTF_8);			
+			return writer.toString();			
+		}
+				
+		if (p.isMimeType("text/*") && !p.isMimeType("text/enriched")) {
+			p.getContentType();
+			
 			String s = (String) p.getContent();
 			textIsHtml = p.isMimeType("text/html");
 			return s;
@@ -132,7 +150,8 @@ public class MailingListParser {
 				if (bp.isMimeType("text/plain")) {
 					if (text == null)
 						text = getText(bp);
-					continue;
+						return text;
+					// continue;
 				} else if (bp.isMimeType("text/html")) {
 					String s = getText(bp);
 					if (s != null)
