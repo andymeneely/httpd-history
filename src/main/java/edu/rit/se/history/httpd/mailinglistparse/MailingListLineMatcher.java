@@ -43,10 +43,11 @@ public class MailingListLineMatcher {
 		File file = new File("C:/mailinglist/downloads/" + filename + ".txt");
 		int startLineNumber = Integer.valueOf(lineNumber);
 		try {
+			
+			
 			while (true) {
 				String startLine = (String) FileUtils.readLines(file).get(startLineNumber);
-
-				if (startLine.startsWith("Message-ID:")) {
+				if (startLine.toLowerCase().startsWith("message-id:")) {
 					System.out.println(comitId + "," + startLine.split(" ")[1]);
 					break;
 				}
