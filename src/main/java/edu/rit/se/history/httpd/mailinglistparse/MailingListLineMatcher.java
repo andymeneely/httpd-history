@@ -40,17 +40,24 @@ public class MailingListLineMatcher {
 	}
 
 	private void getEmailID(String comitId, String filename, String lineNumber) {
-		
-		File file = new File("C:/mailinglist/downloads/"+filename+".txt");
+
+		File file = new File("C:/mailinglist/downloads/" + filename + ".txt");
 		int startLineNumber = Integer.valueOf(lineNumber);
 		try {
-			String startLine = (String) FileUtils.readLines(file).get(startLineNumber);
-			System.out.println(startLine);
+			while (true) {
+				String startLine = (String) FileUtils.readLines(file).get(startLineNumber);
+
+				if (startLine.startsWith("Message-ID:")) {
+					System.out.println(comitId + "," + startLine.split(" ")[1]);
+					break;
+				}
+				startLineNumber++;
+			}
+
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
 
 	}
 
