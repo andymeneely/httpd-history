@@ -44,16 +44,24 @@ public class MailingListLineMatcher {
 		int startLineNumber = Integer.valueOf(lineNumber);
 		try {
 			
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			String line;
 			
-			while (true) {
-				String startLine = (String) FileUtils.readLines(file).get(startLineNumber);
-				if (startLine.toLowerCase().startsWith("message-id:")) {
-					System.out.println(comitId + "," + startLine.split(" ")[1]);
+			for (int i = 1; i < startLineNumber; i++) {
+				br.readLine();
+			}
+			
+			while ((line = br.readLine()) != null) {
+				if (line.toLowerCase().startsWith("message-id:")) {
+					System.out.println(comitId + "," + line.split(" ")[1]);
 					break;
 				}
-				startLineNumber++;
 			}
+			br.close();
+			
 
+		} catch (FileNotFoundException e) {
+			System.out.println("File not found");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
