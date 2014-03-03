@@ -14,7 +14,6 @@ public class MailingListLineMatcher {
 		// TODO Auto-generated method stub
 		MailingListLineMatcher lineMatcher = new MailingListLineMatcher();
 		lineMatcher.readFile("C:/mailinglist/VulnIntro.csv");
-
 	}
 
 	private void readFile(String path) {
