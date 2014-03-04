@@ -68,7 +68,7 @@ public class MailingListLineMatcher {
 				if (line.toLowerCase().startsWith("message-id:")) {
 					String emailID = line.split(" ")[1];
 					System.out.println(comitId + "," + emailID);
-					saveToDB(emailID,comitId);
+					saveToDB(emailID, comitId);
 					break;
 				}
 			}
@@ -95,11 +95,16 @@ public class MailingListLineMatcher {
 		}
 	}
 
-	private void saveToDB(String emailID, String commitId){
+	private void saveToDB(String emailID, String commitId) {
 		BasicDBObject query = new BasicDBObject();
-	    query.put("messageID", emailID);
-	    
+		query.put("messageID", emailID);
+
 		DBObject email = emailCollection.findOne(query);
-		System.out.println(email);
+
+		if (email != null) {
+			email.put("commitID", commitId);
+			email.put("mention", true);
+			emailCollection.findAndModify(query, email);
+		}
 	}
 }
