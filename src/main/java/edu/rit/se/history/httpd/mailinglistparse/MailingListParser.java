@@ -32,6 +32,8 @@ import org.apache.commons.io.IOUtils;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.sun.mail.util.QPDecoderStream;
 
@@ -134,7 +136,7 @@ public class MailingListParser {
 		}
 		return result;
 	}
-
+	
 	private void setUpDB() {
 		// mongoDB set up
 		MongoClient mongo;

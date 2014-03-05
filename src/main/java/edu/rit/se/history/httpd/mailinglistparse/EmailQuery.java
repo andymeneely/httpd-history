@@ -2,6 +2,7 @@ package edu.rit.se.history.httpd.mailinglistparse;
 
 import java.net.UnknownHostException;
 
+import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -19,10 +20,31 @@ public class EmailQuery {
 		query.setUpDB();	
 		
 		
-		query.getEmail("<377960000.1036532431@cite.ics.uci.edu>");
+		//uery.getEmail("<377960000.1036532431@cite.ics.uci.edu>");
 		//query.getEmailByContent("index");
 		//query.getEmailByCommit("95b2e3783820974f7eaca442296a408052b3f396");
+		query.processReplies();
 
+	}
+	
+	private void processReplies() {
+		BasicDBObject query = new BasicDBObject("inReplyTo", new BasicDBObject("$exists", true));
+
+		DBCursor emails = emailCollection.find(query);
+		
+		if (emails != null) {
+			System.out.println(emails.count());
+			for (DBObject email : emails) {
+								
+				String inReplyTo = email.get("inReplyTo").toString() ;
+				System.out.println(inReplyTo);
+//				int from = inReplyTo.indexOf("<");
+//				int to = inReplyTo.indexOf(">");
+//				
+//				inReplyTo.subSequence(from, to);
+//				System.out.println(inReplyTo.subSequence(from, to));
+			}
+		}	
 	}
 	
 	private void getEmailByCommit(String commitID){
