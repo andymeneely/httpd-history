@@ -39,11 +39,13 @@ public class MailingListParser {
 
 	final static String PATH_TO_FILES = "C:/mailinglist/downloads";
 	DBCollection emailCollection;
+	int quantity = 0;
 
 	public static void main(String[] args) {
 		MailingListParser mailingListParser = new MailingListParser();
 		mailingListParser.setUpDB();
 		mailingListParser.loadFolder(PATH_TO_FILES);
+		System.out.println(mailingListParser.quantity);
 
 	}
 
@@ -57,7 +59,7 @@ public class MailingListParser {
 				String content;
 				try {
 					content = readFile(file.getAbsolutePath(), StandardCharsets.UTF_8);
-					this.loadFile(content);
+					loadFile(content);
 					System.out.println("Finished loading: " + file.getName());
 
 				} catch (IOException e) {
@@ -72,7 +74,7 @@ public class MailingListParser {
 	private void loadFile(String content) {
 
 		String[] textMessages = content.split("\n\nFrom ");
-
+		quantity += textMessages.length;
 		for (int i = 1; i < textMessages.length; i++) {
 			textMessages[i] = "From " + textMessages[i];
 		}
