@@ -19,15 +19,29 @@ public class EmailQuery {
 		query.setUpDB();	
 		
 		
-		//query.getEmail("<6cca3db30911131110i1b93dd4bkce5371d959a54c90@mail.gmail.com>");
-		//query.getEmailWithContent("index");
+		query.getEmail("<377960000.1036532431@cite.ics.uci.edu>");
+		//query.getEmailByContent("index");
+		//query.getEmailByCommit("95b2e3783820974f7eaca442296a408052b3f396");
 
 	}
 	
-	
-	private void getEmailWithContent(String text) {
+	private void getEmailByCommit(String commitID){
 		BasicDBObject query = new BasicDBObject();
-		query.put("content",  java.util.regex.Pattern.compile(text));
+		query.put("commitID", commitID);
+
+		DBCursor emails = emailCollection.find(query);
+
+		if (emails != null) {
+			System.out.println(emails.count());
+			for (DBObject email : emails) {
+				System.out.println(email);
+			}
+		}
+	}
+	
+	private void getEmailByContent(String content) {
+		BasicDBObject query = new BasicDBObject();
+		query.put("content",  java.util.regex.Pattern.compile(content));
 		DBCursor emails = emailCollection.find(query);
 		
 		
@@ -39,7 +53,6 @@ public class EmailQuery {
 		}
 		
 	}
-
 
 	private void getEmail(String emailID){
 		BasicDBObject query = new BasicDBObject();
