@@ -73,7 +73,7 @@ public class MailingListParser {
 
 				} catch (IOException e) {
 					fileLevelErrors++;
-					System.out.println("IOException: There is a problem reading file " + file.getName() + " - MSG: "
+					System.out.println("IOException on loadFolder: There is a problem reading file " + file.getName() + " - MSG: "
 							+ e.getMessage());
 				}
 			}
@@ -102,7 +102,7 @@ public class MailingListParser {
 					messages[i] = new MimeMessage(s, is);
 				} catch (MessagingException e) {
 					emailLevelErrors++;
-					e.printStackTrace();
+					System.out.println("MessagingException on parseEmails: Creating the MimeMessage: " + e.getMessage());
 				}
 			}
 			saveToDB(messages); // save the emails to the database.
@@ -132,10 +132,10 @@ public class MailingListParser {
 
 			} catch (IOException e) {
 				emailLevelErrors++;
-				System.out.println("IOException: getContents or  IOUtils.copy error: " + e.getMessage());
+				System.out.println("IOException on saveToDB: getContents or  IOUtils.copy error: " + e.getMessage());
 			} catch (MessagingException e) {				
 				emailLevelErrors++;
-				System.out.println("MessagingException: getContents: " + e.getMessage());
+				System.out.println("MessagingException on saveToDB: getContents: " + e.getMessage());
 			}
 		}
 	}
@@ -165,7 +165,7 @@ public class MailingListParser {
 			DB db = mongo.getDB("mailinglist");
 			this.emailCollection = db.getCollection("email");
 		} catch (UnknownHostException e) {
-			System.out.println("UnknownHostException: There was an while setting up the database :" + e.getMessage());
+			System.out.println("UnknownHostException on setUpDB: There was an while setting up the database :" + e.getMessage());
 		}
 	}
 
