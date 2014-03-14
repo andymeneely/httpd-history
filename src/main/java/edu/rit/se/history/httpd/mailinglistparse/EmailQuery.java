@@ -11,43 +11,64 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 
 public class EmailQuery {
-	
+
 	private DBCollection emailCollection;
 
 	public static void main(String[] args) {
-		
+
 		EmailQuery query = new EmailQuery();
-		query.setUpDB();	
-		
-		
-		//uery.getEmail("<377960000.1036532431@cite.ics.uci.edu>");
-		//query.getEmailByContent("index");
-		//query.getEmailByCommit("95b2e3783820974f7eaca442296a408052b3f396");
-		query.processReplies();
+		query.setUpDB();
+
+		// query.getEmail("<199801092329.SAA09421@devsys.jaguNET.com>");
+		// query.getEmailByContent("vulnerability");
+		// query.getEmailByCommit("95b2e3783820974f7eaca442296a408052b3f396");
+		query.processDirectReplies();
 
 	}
-	
+
+	private void processDirectReplies() {
+		
+		BasicDBObject query = new BasicDBObject("inReplyTo", new BasicDBObject("$exists", true));
+
+		DBCursor emails = emailCollection.find(query);
+		if (emails != null) {
+			System.out.println(emails.count());
+			for (DBObject email : emails) {
+				if (email.get("inReplyTo") != null) {
+					String inReplyTo = email.get("inReplyTo").toString();
+					System.out.println("inReplyTo" + inReplyTo);
+				}
+				
+				if (email.get("references") != null) {
+					BasicDBList references = (BasicDBList) email.get("references");
+					
+					System.out.println("references:" + references.get(0));
+				}
+			}
+		}
+	}
+
 	private void processReplies() {
 		BasicDBObject query = new BasicDBObject("inReplyTo", new BasicDBObject("$exists", true));
 
 		DBCursor emails = emailCollection.find(query);
-		
+
 		if (emails != null) {
 			System.out.println(emails.count());
 			for (DBObject email : emails) {
-								
-				String inReplyTo = email.get("inReplyTo").toString() ;
+
+				String inReplyTo = email.get("inReplyTo").toString();
 				System.out.println(inReplyTo);
-//				int from = inReplyTo.indexOf("<");
-//				int to = inReplyTo.indexOf(">");
-//				
-//				inReplyTo.subSequence(from, to);
-//				System.out.println(inReplyTo.subSequence(from, to));
+				// int from = inReplyTo.indexOf("<");
+				// int to = inReplyTo.indexOf(">");
+				//
+				// inReplyTo.subSequence(from, to);
+				// System.out.println(inReplyTo.subSequence(from, to));
 			}
-		}	
+		}
 	}
-	
-	private void getEmailByCommit(String commitID){
+
+	private void getEmailByCommit(String commitID) {
 		BasicDBObject query = new BasicDBObject();
 		query.put("commitID", commitID);
 
@@ -60,23 +81,22 @@ public class EmailQuery {
 			}
 		}
 	}
-	
+
 	private void getEmailByContent(String content) {
 		BasicDBObject query = new BasicDBObject();
-		query.put("content",  java.util.regex.Pattern.compile(content));
+		query.put("content", java.util.regex.Pattern.compile(content));
 		DBCursor emails = emailCollection.find(query);
-		
-		
+
 		if (emails != null) {
 			System.out.println(emails.count());
 			for (DBObject email : emails) {
-				System.out.println(email);
+				System.out.println(email.get("content"));
 			}
 		}
-		
+
 	}
 
-	private void getEmail(String emailID){
+	private void getEmail(String emailID) {
 		BasicDBObject query = new BasicDBObject();
 		query.put("messageID", emailID);
 
@@ -84,10 +104,10 @@ public class EmailQuery {
 
 		if (email != null) {
 			System.out.println(email);
-		}		
-		
+		}
+
 	}
-	
+
 	private void setUpDB() {
 		// mongoDB set up
 		MongoClient mongo;

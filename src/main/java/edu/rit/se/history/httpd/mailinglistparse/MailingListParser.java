@@ -12,6 +12,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import javax.mail.Address;
@@ -29,6 +31,7 @@ import javax.mail.internet.NewsAddress;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
+import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -73,8 +76,8 @@ public class MailingListParser {
 
 				} catch (IOException e) {
 					fileLevelErrors++;
-					System.out.println("IOException on loadFolder: There is a problem reading file " + file.getName() + " - MSG: "
-							+ e.getMessage());
+					System.out.println("IOException on loadFolder: There is a problem reading file " + file.getName()
+							+ " - MSG: " + e.getMessage());
 				}
 			}
 		}
@@ -95,19 +98,18 @@ public class MailingListParser {
 	private void parseEmails(String[] textMessages) {
 		MimeMessage[] messages = new MimeMessage[textMessages.length];
 		Session s = Session.getDefaultInstance(new Properties());
-		
-			for (int i = 0; i < textMessages.length; i++) {
-				InputStream is = new ByteArrayInputStream(textMessages[i].getBytes());
-				try {
-					messages[i] = new MimeMessage(s, is);
-				} catch (MessagingException e) {
-					emailLevelErrors++;
-					System.out.println("MessagingException on parseEmails: Creating the MimeMessage: " + e.getMessage());
-				}
+
+		for (int i = 0; i < textMessages.length; i++) {
+			InputStream is = new ByteArrayInputStream(textMessages[i].getBytes());
+			try {
+				messages[i] = new MimeMessage(s, is);
+			} catch (MessagingException e) {
+				emailLevelErrors++;
+				System.out.println("MessagingException on parseEmails: Creating the MimeMessage: " + e.getMessage());
 			}
-			saveToDB(messages); // save the emails to the database.
-		
-		
+		}
+		saveToDB(messages); // save the emails to the database.
+
 	}
 
 	private void saveToDB(MimeMessage[] messages) {
@@ -120,7 +122,7 @@ public class MailingListParser {
 				if (messages[i].getHeader("In-Reply-To") != null)
 					email.put("inReplyTo", messages[i].getHeader("In-Reply-To"));
 				if (messages[i].getHeader("References") != null)
-					email.put("references", messages[i].getHeader("References"));
+					email.put("references", getEmailAdress(messages[i].getHeader("References")[0]));
 
 				email.put("from", getEmailAdress(messages[i].getFrom()));
 				// email.put("sender", messages[i].getSender().toString());
@@ -133,27 +135,43 @@ public class MailingListParser {
 			} catch (IOException e) {
 				emailLevelErrors++;
 				System.out.println("IOException on saveToDB: getContents or  IOUtils.copy error: " + e.getMessage());
-			} catch (MessagingException e) {				
+			} catch (MessagingException e) {
 				emailLevelErrors++;
 				System.out.println("MessagingException on saveToDB: getContents: " + e.getMessage());
 			}
 		}
 	}
 
-	private String getEmailAdress(Address[] allRecipients) {
-		String result = " ";
+	private BasicDBList getEmailAdress(Address[] allRecipients) {
+
+		BasicDBList result = new BasicDBList();
+
 		if (allRecipients != null) {
 			for (Address address : allRecipients) {
 
 				if (address instanceof InternetAddress) {
 					InternetAddress emailAddress = (InternetAddress) address;
-					result = emailAddress.getAddress() + ",";
+					result.add(emailAddress.getAddress());
 				} else if (address instanceof NewsAddress) {
 					NewsAddress newsAddress = (NewsAddress) address;
-					result = newsAddress.toString() + ",";
+					result.add(newsAddress.toString());
 				}
 			}
 		}
+		return result;
+	}
+
+	private BasicDBList getEmailAdress(String string) {
+
+		BasicDBList result = new BasicDBList();
+
+		if (string != null) {
+			String[] allRecipients = string.split("\r\n\t");
+			for (String address : allRecipients) {
+				result.add(address);
+			}
+		}
+
 		return result;
 	}
 
@@ -165,7 +183,8 @@ public class MailingListParser {
 			DB db = mongo.getDB("mailinglist");
 			this.emailCollection = db.getCollection("email");
 		} catch (UnknownHostException e) {
-			System.out.println("UnknownHostException on setUpDB: There was an while setting up the database :" + e.getMessage());
+			System.out.println("UnknownHostException on setUpDB: There was an while setting up the database :"
+					+ e.getMessage());
 		}
 	}
 
@@ -186,9 +205,18 @@ public class MailingListParser {
 		if (p.isMimeType("text/*") && !p.isMimeType("text/enriched")) {
 			p.getContentType();
 
-			String s = (String) p.getContent();
-			textIsHtml = p.isMimeType("text/html");
-			return s;
+			try {
+				String s = (String) p.getContent();
+				textIsHtml = p.isMimeType("text/html");
+				return s;
+			} catch (ClassCastException e) {
+				InputStream is = (InputStream) p.getContent();
+				StringWriter writer = new StringWriter();
+				IOUtils.copy(is, writer, StandardCharsets.UTF_8);
+				textIsHtml = p.isMimeType("text/html");
+				return writer.toString();
+			}
+
 		}
 
 		if (p.isMimeType("multipart/alternative")) {
