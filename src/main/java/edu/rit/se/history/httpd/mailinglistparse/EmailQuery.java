@@ -36,13 +36,13 @@ public class EmailQuery {
 			for (DBObject email : emails) {
 				if (email.get("inReplyTo") != null) {
 					String inReplyTo = email.get("inReplyTo").toString();
-					System.out.println("inReplyTo" + inReplyTo);
+					System.out.println("inReplyTo: " + inReplyTo);
 				}
 				
 				if (email.get("references") != null) {
 					BasicDBList references = (BasicDBList) email.get("references");
 					
-					System.out.println("references:" + references.get(0));
+					System.out.println("references: " + references);
 				}
 			}
 		}

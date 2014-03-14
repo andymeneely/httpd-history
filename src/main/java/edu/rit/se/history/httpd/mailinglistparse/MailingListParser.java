@@ -55,7 +55,7 @@ public class MailingListParser {
 		MailingListParser mailingListParser = new MailingListParser();
 		mailingListParser.setUpDB();
 		mailingListParser.loadFolder(PATH_TO_FILES);
-		System.out.println("Processed Emails based on \n\nFrom : " + mailingListParser.quantity);
+		System.out.println("Processed Emails based on \\n\\nFrom : " + mailingListParser.quantity);
 		System.out.println("File level errors: " + mailingListParser.fileLevelErrors);
 		System.out.println("File parsion errors: " + mailingListParser.fileParsingErrors);
 		System.out.println("Email level errors: " + mailingListParser.emailLevelErrors);
@@ -120,7 +120,7 @@ public class MailingListParser {
 
 				email.put("messageID", messages[i].getMessageID());
 				if (messages[i].getHeader("In-Reply-To") != null)
-					email.put("inReplyTo", messages[i].getHeader("In-Reply-To"));
+					email.put("inReplyTo", extractReplyID(messages[i].getHeader("In-Reply-To")[0]));
 				if (messages[i].getHeader("References") != null)
 					email.put("references", getEmailAdress(messages[i].getHeader("References")[0]));
 
@@ -142,6 +142,19 @@ public class MailingListParser {
 		}
 	}
 
+	
+	private String extractReplyID(String reply) {
+		String result = "";
+		try{
+			result = reply.substring(reply.indexOf("<"), reply.indexOf(">")+1);
+		}catch(StringIndexOutOfBoundsException e){
+			result = reply;
+		}
+		
+		return result;
+	}
+	
+	
 	private BasicDBList getEmailAdress(Address[] allRecipients) {
 
 		BasicDBList result = new BasicDBList();
