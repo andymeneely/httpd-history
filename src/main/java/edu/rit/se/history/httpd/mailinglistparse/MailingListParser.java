@@ -41,14 +41,21 @@ public class MailingListParser {
 
 	final static String PATH_TO_FILES = "C:/mailinglist/downloads";
 	DBCollection emailCollection;
+
+	// added variables to count success and error.
 	int quantity = 0;
+	int fileLevelErrors = 0;
+	int fileParsingErrors = 0;
+	int emailLevelErrors = 0;
 
 	public static void main(String[] args) {
 		MailingListParser mailingListParser = new MailingListParser();
 		mailingListParser.setUpDB();
 		mailingListParser.loadFolder(PATH_TO_FILES);
-		System.out.println(mailingListParser.quantity);
-
+		System.out.println("Processed Emails based on \n\nFrom : " + mailingListParser.quantity);
+		System.out.println("File level errors: " + mailingListParser.fileLevelErrors);
+		System.out.println("File parsion errors: " + mailingListParser.fileParsingErrors);
+		System.out.println("Email level errors: " + mailingListParser.emailLevelErrors);
 	}
 
 	private void loadFolder(String path) {
@@ -65,7 +72,8 @@ public class MailingListParser {
 					System.out.println("Finished loading: " + file.getName());
 
 				} catch (IOException e) {
-					System.out.println("Error: There is a problem reading file " + file.getName() + " - MSG: "
+					fileLevelErrors++;
+					System.out.println("IOException: There is a problem reading file " + file.getName() + " - MSG: "
 							+ e.getMessage());
 				}
 			}
@@ -81,42 +89,54 @@ public class MailingListParser {
 			textMessages[i] = "From " + textMessages[i];
 		}
 		parseEmails(textMessages);
+
 	}
 
 	private void parseEmails(String[] textMessages) {
 		MimeMessage[] messages = new MimeMessage[textMessages.length];
 		Session s = Session.getDefaultInstance(new Properties());
-		try {
+		
 			for (int i = 0; i < textMessages.length; i++) {
 				InputStream is = new ByteArrayInputStream(textMessages[i].getBytes());
-				messages[i] = new MimeMessage(s, is);
+				try {
+					messages[i] = new MimeMessage(s, is);
+				} catch (MessagingException e) {
+					emailLevelErrors++;
+					e.printStackTrace();
+				}
 			}
 			saveToDB(messages); // save the emails to the database.
-		} catch (MessagingException e) {
-			System.out.println("Error: Bad email input file." + e.getMessage());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			System.out.println("IO Error: Loading email " + " " + e.getMessage());
-		}
+		
+		
 	}
 
-	private void saveToDB(MimeMessage[] messages) throws MessagingException, IOException {
+	private void saveToDB(MimeMessage[] messages) {
 
 		for (int i = 0; i < messages.length; i++) {
 			BasicDBObject email = new BasicDBObject();
-			
-			email.put("messageID", messages[i].getMessageID());
-			if (messages[i].getHeader("In-Reply-To") != null)
-				email.put("inReplyTo", messages[i].getHeader("In-Reply-To"));
+			try {
 
-			email.put("from", getEmailAdress(messages[i].getFrom()));
-			//email.put("sender", messages[i].getSender().toString());
-			email.put("allRecipients", getEmailAdress(messages[i].getAllRecipients()));
-			email.put("subject", messages[i].getSubject());
-			email.put("content", getText(messages[i]));
-			email.put("sentDate", messages[i].getSentDate());
-			emailCollection.insert(email);
+				email.put("messageID", messages[i].getMessageID());
+				if (messages[i].getHeader("In-Reply-To") != null)
+					email.put("inReplyTo", messages[i].getHeader("In-Reply-To"));
+				if (messages[i].getHeader("References") != null)
+					email.put("references", messages[i].getHeader("References"));
 
+				email.put("from", getEmailAdress(messages[i].getFrom()));
+				// email.put("sender", messages[i].getSender().toString());
+				email.put("allRecipients", getEmailAdress(messages[i].getAllRecipients()));
+				email.put("subject", messages[i].getSubject());
+				email.put("content", getText(messages[i]));
+				email.put("sentDate", messages[i].getSentDate());
+				emailCollection.insert(email);
+
+			} catch (IOException e) {
+				emailLevelErrors++;
+				System.out.println("IOException: getContents or  IOUtils.copy error: " + e.getMessage());
+			} catch (MessagingException e) {				
+				emailLevelErrors++;
+				System.out.println("MessagingException: getContents: " + e.getMessage());
+			}
 		}
 	}
 
@@ -128,7 +148,7 @@ public class MailingListParser {
 				if (address instanceof InternetAddress) {
 					InternetAddress emailAddress = (InternetAddress) address;
 					result = emailAddress.getAddress() + ",";
-				}else if (address instanceof NewsAddress) {
+				} else if (address instanceof NewsAddress) {
 					NewsAddress newsAddress = (NewsAddress) address;
 					result = newsAddress.toString() + ",";
 				}
@@ -136,7 +156,7 @@ public class MailingListParser {
 		}
 		return result;
 	}
-	
+
 	private void setUpDB() {
 		// mongoDB set up
 		MongoClient mongo;
@@ -145,7 +165,7 @@ public class MailingListParser {
 			DB db = mongo.getDB("mailinglist");
 			this.emailCollection = db.getCollection("email");
 		} catch (UnknownHostException e) {
-			System.out.println("Error: There was an while setting up the database :" + e.getMessage());
+			System.out.println("UnknownHostException: There was an while setting up the database :" + e.getMessage());
 		}
 	}
 

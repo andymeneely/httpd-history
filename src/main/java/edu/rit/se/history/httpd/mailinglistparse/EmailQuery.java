@@ -87,9 +87,6 @@ public class EmailQuery {
 		}		
 		
 	}
-
-	
-	
 	
 	private void setUpDB() {
 		// mongoDB set up
