@@ -19,7 +19,7 @@ public class EmailQuery {
 		EmailQuery query = new EmailQuery();
 		query.setUpDB();
 
-		// query.getEmail("<199801092329.SAA09421@devsys.jaguNET.com>");
+		//query.getEmail("<199801092329.SAA09421@devsys.jaguNET.com>");
 		// query.getEmailByContent("vulnerability");
 		// query.getEmailByCommit("95b2e3783820974f7eaca442296a408052b3f396");
 		query.processDirectReplies();
@@ -41,7 +41,6 @@ public class EmailQuery {
 				
 				if (email.get("references") != null) {
 					BasicDBList references = (BasicDBList) email.get("references");
-					
 					System.out.println("references: " + references);
 				}
 			}
@@ -59,11 +58,6 @@ public class EmailQuery {
 
 				String inReplyTo = email.get("inReplyTo").toString();
 				System.out.println(inReplyTo);
-				// int from = inReplyTo.indexOf("<");
-				// int to = inReplyTo.indexOf(">");
-				//
-				// inReplyTo.subSequence(from, to);
-				// System.out.println(inReplyTo.subSequence(from, to));
 			}
 		}
 	}

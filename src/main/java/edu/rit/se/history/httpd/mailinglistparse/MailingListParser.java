@@ -179,7 +179,7 @@ public class MailingListParser {
 		BasicDBList result = new BasicDBList();
 
 		if (string != null) {
-			String[] allRecipients = string.split("\r\n\t");
+			String[] allRecipients = string.split("\\s+");
 			for (String address : allRecipients) {
 				result.add(address);
 			}
@@ -211,7 +211,7 @@ public class MailingListParser {
 		if (p.isMimeType("text/enriched")) {
 			InputStream is = (InputStream) p.getContent();
 			StringWriter writer = new StringWriter();
-			IOUtils.copy(is, writer, StandardCharsets.UTF_8);
+			IOUtils.copy(is, writer);
 			return writer.toString();
 		}
 
@@ -225,7 +225,7 @@ public class MailingListParser {
 			} catch (ClassCastException e) {
 				InputStream is = (InputStream) p.getContent();
 				StringWriter writer = new StringWriter();
-				IOUtils.copy(is, writer, StandardCharsets.UTF_8);
+				IOUtils.copy(is, writer);
 				textIsHtml = p.isMimeType("text/html");
 				return writer.toString();
 			}
