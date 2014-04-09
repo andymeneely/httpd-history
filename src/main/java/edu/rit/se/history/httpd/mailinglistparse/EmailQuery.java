@@ -9,6 +9,7 @@ import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
+import com.mongodb.WriteResult;
 
 public class EmailQuery {
 
@@ -19,45 +20,57 @@ public class EmailQuery {
 		EmailQuery query = new EmailQuery();
 		query.setUpDB();
 
-		//query.getEmail("<199801092329.SAA09421@devsys.jaguNET.com>");
+		// query.getEmail("<199801092329.SAA09421@devsys.jaguNET.com>");
 		// query.getEmailByContent("vulnerability");
 		// query.getEmailByCommit("95b2e3783820974f7eaca442296a408052b3f396");
-		query.processDirectReplies();
+		//query.processDirectReplies();
+		query.processReferences();
 
 	}
 
 	private void processDirectReplies() {
-		
 		BasicDBObject query = new BasicDBObject("inReplyTo", new BasicDBObject("$exists", true));
 
 		DBCursor emails = emailCollection.find(query);
 		if (emails != null) {
-			System.out.println(emails.count());
+			System.out.println("Starting Process...");
+			System.out.println("Emails to be processed: " + emails.count());
 			for (DBObject email : emails) {
-				if (email.get("inReplyTo") != null) {
-					String inReplyTo = email.get("inReplyTo").toString();
-					System.out.println("inReplyTo: " + inReplyTo);
-				}
-				
-				if (email.get("references") != null) {
-					BasicDBList references = (BasicDBList) email.get("references");
-					System.out.println("references: " + references);
-				}
+
+				String inReplyTo = email.get("inReplyTo").toString();
+				BasicDBObject repliedQuery = new BasicDBObject();
+				repliedQuery.put("messageID", inReplyTo);
+
+				BasicDBObject increment = new BasicDBObject().append("$inc",
+						new BasicDBObject().append("directReplies", 1));
+
+				emailCollection.update(repliedQuery, increment);
 			}
 		}
 	}
 
-	private void processReplies() {
-		BasicDBObject query = new BasicDBObject("inReplyTo", new BasicDBObject("$exists", true));
+	private void processReferences() {
+		BasicDBObject query = new BasicDBObject("references", new BasicDBObject("$exists", true));
 
 		DBCursor emails = emailCollection.find(query);
-
 		if (emails != null) {
-			System.out.println(emails.count());
+			System.out.println("Starting Process...");
+			System.out.println("Emails to be processed: " + emails.count());
 			for (DBObject email : emails) {
 
-				String inReplyTo = email.get("inReplyTo").toString();
-				System.out.println(inReplyTo);
+				BasicDBList references = (BasicDBList) email.get("references");
+
+				for (Object reference : references) {
+					String emailId = (String) reference;
+
+					BasicDBObject referenceQuery = new BasicDBObject();
+					referenceQuery.put("messageID", emailId);
+
+					BasicDBObject increment = new BasicDBObject().append("$inc",
+							new BasicDBObject().append("referenceCount", 1));
+
+					emailCollection.update(referenceQuery, increment);
+				}
 			}
 		}
 	}

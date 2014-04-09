@@ -68,7 +68,7 @@ public class MailingListLineMatcher {
 				if (line.toLowerCase().startsWith("message-id:")) {
 					String emailID = line.split(" ")[1];
 					System.out.println(comitId + "," + emailID);
-					//saveToDB(emailID, comitId);
+					saveToDB(emailID, comitId);
 					break;
 				}
 			}

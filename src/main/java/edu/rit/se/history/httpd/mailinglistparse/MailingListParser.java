@@ -52,6 +52,7 @@ public class MailingListParser {
 	int emailLevelErrors = 0;
 
 	public static void main(String[] args) {
+		System.out.println("Starting parsing process...");
 		MailingListParser mailingListParser = new MailingListParser();
 		mailingListParser.setUpDB();
 		mailingListParser.loadFolder(PATH_TO_FILES);
@@ -72,12 +73,12 @@ public class MailingListParser {
 				try {
 					content = readFile(file.getAbsolutePath(), StandardCharsets.UTF_8);
 					loadFile(content);
-					System.out.println("Finished loading: " + file.getName());
+					// System.out.println("Finished loading: " + file.getName());
 
 				} catch (IOException e) {
 					fileLevelErrors++;
-					System.out.println("IOException on loadFolder: There is a problem reading file " + file.getName()
-							+ " - MSG: " + e.getMessage());
+					// System.out.println("IOException on loadFolder: There is a problem reading file " + file.getName()
+					//		+ " - MSG: " + e.getMessage());
 				}
 			}
 		}
@@ -105,7 +106,7 @@ public class MailingListParser {
 				messages[i] = new MimeMessage(s, is);
 			} catch (MessagingException e) {
 				emailLevelErrors++;
-				System.out.println("MessagingException on parseEmails: Creating the MimeMessage: " + e.getMessage());
+				// System.out.println("MessagingException on parseEmails: Creating the MimeMessage: " + e.getMessage());
 			}
 		}
 		saveToDB(messages); // save the emails to the database.
@@ -134,10 +135,10 @@ public class MailingListParser {
 
 			} catch (IOException e) {
 				emailLevelErrors++;
-				System.out.println("IOException on saveToDB: getContents or  IOUtils.copy error: " + e.getMessage());
+				// System.out.println("IOException on saveToDB: getContents or  IOUtils.copy error: " + e.getMessage());
 			} catch (MessagingException e) {
 				emailLevelErrors++;
-				System.out.println("MessagingException on saveToDB: getContents: " + e.getMessage());
+				// System.out.println("MessagingException on saveToDB: getContents: " + e.getMessage());
 			}
 		}
 	}
@@ -196,8 +197,8 @@ public class MailingListParser {
 			DB db = mongo.getDB("mailinglist");
 			this.emailCollection = db.getCollection("email");
 		} catch (UnknownHostException e) {
-			System.out.println("UnknownHostException on setUpDB: There was an while setting up the database :"
-					+ e.getMessage());
+			// System.out.println("UnknownHostException on setUpDB: There was an while setting up the database :"
+			//		+ e.getMessage());
 		}
 	}
 
