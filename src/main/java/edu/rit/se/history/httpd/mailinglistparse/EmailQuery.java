@@ -28,10 +28,10 @@ public class EmailQuery {
 	}
 
 	private void processReplies() {
-		this.processDirectReplies();
-		this.processIndirectReplies();
-		this.processReferences();
-		this.processIndirectReferences();
+		// this.processDirectReplies();
+		// this.processIndirectReplies();
+		// this.processReferences();
+		// this.processIndirectReferences();
 	}
 
 	private void processDirectReplies() {
@@ -43,37 +43,56 @@ public class EmailQuery {
 			System.out.println("Emails to be processed: " + emails.count());
 			for (DBObject email : emails) {
 
+				//String messageID = (String) email.get("messageID");
+				BasicDBList from = (BasicDBList) email.get("from");
 				String inReplyTo = email.get("inReplyTo").toString();
+
 				BasicDBObject repliedQuery = new BasicDBObject();
 				repliedQuery.put("messageID", inReplyTo);
 
-				BasicDBObject increment = new BasicDBObject().append("$inc",
-						new BasicDBObject().append("directReplies", 1));
+				BasicDBObject update = new BasicDBObject();
+				update.put("$inc", new BasicDBObject().append("repliesCount", 1));
+				
+				
+				//update.put("$addToSet", new BasicDBObject().append("repliedIn", messageID));
+				
+				BasicDBObject responders = new BasicDBObject().append("$each", from);
+				update.put("$addToSet", new BasicDBObject().append("responders", responders));
 
-				emailCollection.update(repliedQuery, increment);
+				System.out.println(emailCollection.update(repliedQuery, update));
 			}
 		}
 	}
 
 	private void processIndirectReplies() {
-		BasicDBObject query = new BasicDBObject("inReplyTo", new BasicDBObject("$exists", true));
+		BasicDBObject query = new BasicDBObject("repliedBy", new BasicDBObject("$exists", true));
+		query.append("inReplyTo", new BasicDBObject("$exists", true));
 
 		DBCursor emails = emailCollection.find(query);
 		if (emails != null) {
 			System.out.println("Starting Process...");
 			System.out.println("Emails to be processed: " + emails.count());
 			for (DBObject email : emails) {
-
+				
+				
 				String inReplyTo = email.get("inReplyTo").toString();
-				int directReplies = (Integer) email.get("directReplies");
+				int repliesCount = (Integer) email.get("repliesCount");
+				//BasicDBList repliedIn = (BasicDBList) email.get("repliedIn");
+				BasicDBList responders = (BasicDBList) email.get("responders");
 
 				BasicDBObject repliedQuery = new BasicDBObject();
 				repliedQuery.put("messageID", inReplyTo);
 
-				BasicDBObject increment = new BasicDBObject().append("$inc",
-						new BasicDBObject().append("indirectReplies", directReplies));
+				BasicDBObject update = new BasicDBObject();
+				update.append("$inc", new BasicDBObject().append("indirectRepliesCount", repliesCount));
+				
+				//BasicDBObject indirectRepliedIn = new BasicDBObject().append("$each", repliedIn);
+				//update.append("$addToSet", new BasicDBObject().append("$indirectRepliedIn", indirectRepliedIn));
+				
+				BasicDBObject indirectRepliedBy = new BasicDBObject().append("$each", responders);
+				update.append("$addToSet", new BasicDBObject().append("indirectResponders", indirectRepliedBy));
 
-				emailCollection.update(repliedQuery, increment);
+				System.out.println(emailCollection.update(repliedQuery, update));
 			}
 		}
 	}
@@ -87,6 +106,8 @@ public class EmailQuery {
 			System.out.println("Emails to be processed: " + emails.count());
 			for (DBObject email : emails) {
 
+				//String messageID = (String) email.get("messageID");
+				BasicDBList from = (BasicDBList) email.get("from");
 				BasicDBList references = (BasicDBList) email.get("references");
 
 				for (Object reference : references) {
@@ -95,10 +116,14 @@ public class EmailQuery {
 					BasicDBObject referenceQuery = new BasicDBObject();
 					referenceQuery.put("messageID", emailId);
 
-					BasicDBObject increment = new BasicDBObject().append("$inc",
-							new BasicDBObject().append("referenceCount", 1));
-
-					emailCollection.update(referenceQuery, increment);
+					BasicDBObject update = new BasicDBObject();
+					update.append("$inc", new BasicDBObject().append("referenceCount", 1));
+					//update.append("$addToSet", new BasicDBObject().append("referencedIn", messageID));
+					
+					BasicDBObject referencedBy = new BasicDBObject().append("$each", from);
+					update.put("$addToSet", new BasicDBObject().append("referencedBy", referencedBy));
+					
+					emailCollection.update(referenceQuery, update);
 				}
 			}
 		}
