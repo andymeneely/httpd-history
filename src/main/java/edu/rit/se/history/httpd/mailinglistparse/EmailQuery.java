@@ -19,17 +19,18 @@ public class EmailQuery {
 
 		EmailQuery query = new EmailQuery();
 		query.setUpDB();
-
-		// query.getEmail("<199801092329.SAA09421@devsys.jaguNET.com>");
+		
+		query.getEmailBySubject("Revised patch list");
+		//query.getEmail("<9503011456.AA24767@volterra>");
 		// query.getEmailByContent("vulnerability");
 		// query.getEmailByCommit("95b2e3783820974f7eaca442296a408052b3f396");
-		query.processReplies();
+		// query.processReplies();
 
 	}
 
 	private void processReplies() {
 		// this.processDirectReplies();
-		// this.processIndirectReplies();
+		 this.processIndirectReplies();
 		// this.processReferences();
 		// this.processIndirectReferences();
 	}
@@ -65,7 +66,7 @@ public class EmailQuery {
 	}
 
 	private void processIndirectReplies() {
-		BasicDBObject query = new BasicDBObject("repliedBy", new BasicDBObject("$exists", true));
+		BasicDBObject query = new BasicDBObject("responders", new BasicDBObject("$exists", true));
 		query.append("inReplyTo", new BasicDBObject("$exists", true));
 
 		DBCursor emails = emailCollection.find(query);
@@ -183,6 +184,21 @@ public class EmailQuery {
 		}
 
 	}
+	
+	private void getEmailBySubject(String subject) {
+		BasicDBObject query = new BasicDBObject();
+		query.put("subject", java.util.regex.Pattern.compile(subject));
+		DBCursor emails = emailCollection.find(query);
+
+		if (emails != null) {
+			System.out.println(emails.count());
+			for (DBObject email : emails) {
+				System.out.println(email);
+			}
+		}
+
+	}
+
 
 	private void getEmail(String emailID) {
 		BasicDBObject query = new BasicDBObject();

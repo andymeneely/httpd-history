@@ -73,12 +73,13 @@ public class MailingListParser {
 				try {
 					content = readFile(file.getAbsolutePath(), StandardCharsets.UTF_8);
 					loadFile(content);
-					// System.out.println("Finished loading: " + file.getName());
+					System.out.println("Finished loading: " + file.getName());
 
 				} catch (IOException e) {
 					fileLevelErrors++;
-					// System.out.println("IOException on loadFolder: There is a problem reading file " + file.getName()
-					//		+ " - MSG: " + e.getMessage());
+					// System.out.println("IOException on loadFolder: There is a problem reading file " +
+					// file.getName()
+					// + " - MSG: " + e.getMessage());
 				}
 			}
 		}
@@ -86,14 +87,12 @@ public class MailingListParser {
 	}
 
 	private void loadFile(String content) {
-
 		String[] textMessages = content.split("\n\nFrom ");
 		quantity += textMessages.length;
 		for (int i = 1; i < textMessages.length; i++) {
 			textMessages[i] = "From " + textMessages[i];
 		}
 		parseEmails(textMessages);
-
 	}
 
 	private void parseEmails(String[] textMessages) {
@@ -106,7 +105,8 @@ public class MailingListParser {
 				messages[i] = new MimeMessage(s, is);
 			} catch (MessagingException e) {
 				emailLevelErrors++;
-				// System.out.println("MessagingException on parseEmails: Creating the MimeMessage: " + e.getMessage());
+				// System.out.println("MessagingException on parseEmails: Creating the MimeMessage: " +
+				// e.getMessage());
 			}
 		}
 		saveToDB(messages); // save the emails to the database.
@@ -120,8 +120,12 @@ public class MailingListParser {
 			try {
 
 				email.put("messageID", messages[i].getMessageID());
-				if (messages[i].getHeader("In-Reply-To") != null)
-					email.put("inReplyTo", extractReplyID(messages[i].getHeader("In-Reply-To")[0]));
+
+				if (messages[i].getHeader("In-Reply-To") != null) {
+					String inReplyTo = extractReplyID(messages[i].getHeader("In-Reply-To")[0]);
+					email.put("inReplyTo", inReplyTo);
+					recursiveProcessReplies(inReplyTo, true);
+				}
 				if (messages[i].getHeader("References") != null)
 					email.put("references", getEmailAdress(messages[i].getHeader("References")[0]));
 
@@ -135,7 +139,8 @@ public class MailingListParser {
 
 			} catch (IOException e) {
 				emailLevelErrors++;
-				// System.out.println("IOException on saveToDB: getContents or  IOUtils.copy error: " + e.getMessage());
+				// System.out.println("IOException on saveToDB: getContents or  IOUtils.copy error: " +
+				// e.getMessage());
 			} catch (MessagingException e) {
 				emailLevelErrors++;
 				// System.out.println("MessagingException on saveToDB: getContents: " + e.getMessage());
@@ -143,19 +148,37 @@ public class MailingListParser {
 		}
 	}
 
-	
+	private void recursiveProcessReplies(String emailId, boolean direct) {
+		BasicDBObject repliedQuery = new BasicDBObject();
+		repliedQuery.put("messageID", emailId);
+		BasicDBObject update = new BasicDBObject();
+
+		if (direct) {
+			update.append("$inc", new BasicDBObject().append("directRepliesCount", 1));
+		} else {
+			update.append("$inc", new BasicDBObject().append("indirectRepliesCount", 1));
+		}
+
+		emailCollection.update(repliedQuery, update);
+		DBObject email = emailCollection.findOne(repliedQuery);
+		
+		if (email != null && email.containsField("inReplyTo") && email.get("inReplyTo") != null) {
+			String inReplyTo = (String) email.get("inReplyTo");
+			recursiveProcessReplies(inReplyTo, false);
+		}
+	}
+
 	private String extractReplyID(String reply) {
 		String result = "";
-		try{
-			result = reply.substring(reply.indexOf("<"), reply.indexOf(">")+1);
-		}catch(StringIndexOutOfBoundsException e){
+		try {
+			result = reply.substring(reply.indexOf("<"), reply.indexOf(">") + 1);
+		} catch (StringIndexOutOfBoundsException e) {
 			result = reply;
 		}
-		
+
 		return result;
 	}
-	
-	
+
 	private BasicDBList getEmailAdress(Address[] allRecipients) {
 
 		BasicDBList result = new BasicDBList();
@@ -198,7 +221,7 @@ public class MailingListParser {
 			this.emailCollection = db.getCollection("email");
 		} catch (UnknownHostException e) {
 			// System.out.println("UnknownHostException on setUpDB: There was an while setting up the database :"
-			//		+ e.getMessage());
+			// + e.getMessage());
 		}
 	}
 
