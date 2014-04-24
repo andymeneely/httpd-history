@@ -120,15 +120,21 @@ public class MailingListParser {
 			try {
 
 				email.put("messageID", messages[i].getMessageID());
-
+				BasicDBList replies = new BasicDBList();
 				if (messages[i].getHeader("In-Reply-To") != null) {
 					String inReplyTo = extractReplyID(messages[i].getHeader("In-Reply-To")[0]);
 					email.put("inReplyTo", inReplyTo);
-					recursiveProcessReplies(inReplyTo, true);
+					replies.add(inReplyTo);
 				}
-				if (messages[i].getHeader("References") != null)
-					email.put("references", getEmailAdress(messages[i].getHeader("References")[0]));
+				if (messages[i].getHeader("References") != null) {
+					BasicDBList referenceList = getEmailAdress(messages[i].getHeader("References")[0]);
+					email.put("references", referenceList);
+					replies.addAll(referenceList);
+				}
 
+				if (!replies.isEmpty()) {
+					recursiveProcessReplies(replies, true);
+				}
 				email.put("from", getEmailAdress(messages[i].getFrom()));
 				// email.put("sender", messages[i].getSender().toString());
 				email.put("allRecipients", getEmailAdress(messages[i].getAllRecipients()));
@@ -148,23 +154,37 @@ public class MailingListParser {
 		}
 	}
 
-	private void recursiveProcessReplies(String emailId, boolean direct) {
-		BasicDBObject repliedQuery = new BasicDBObject();
-		repliedQuery.put("messageID", emailId);
-		BasicDBObject update = new BasicDBObject();
+	private void recursiveProcessReplies(BasicDBList emailList, boolean direct) {
 
-		if (direct) {
-			update.append("$inc", new BasicDBObject().append("directRepliesCount", 1));
-		} else {
-			update.append("$inc", new BasicDBObject().append("indirectRepliesCount", 1));
-		}
+		if (!emailList.isEmpty()) {
 
-		emailCollection.update(repliedQuery, update);
-		DBObject email = emailCollection.findOne(repliedQuery);
-		
-		if (email != null && email.containsField("inReplyTo") && email.get("inReplyTo") != null) {
-			String inReplyTo = (String) email.get("inReplyTo");
-			recursiveProcessReplies(inReplyTo, false);
+			for (Object object : emailList) {
+				String emailId = (String) object;
+
+				BasicDBObject repliedQuery = new BasicDBObject();
+				repliedQuery.put("messageID", emailId);
+				BasicDBObject update = new BasicDBObject();
+
+				if (direct) {
+					update.append("$inc", new BasicDBObject().append("directRepliesCount", 1));
+				} else {
+					update.append("$inc", new BasicDBObject().append("indirectRepliesCount", 1));
+				}
+
+				emailCollection.update(repliedQuery, update);
+				DBObject email = emailCollection.findOne(repliedQuery);				
+				BasicDBList repliesList = new BasicDBList();
+				
+				if (email != null && email.containsField("inReplyTo") && email.get("inReplyTo") != null){
+					repliesList.add((String) email.get("inReplyTo"));
+				}
+
+				if (email != null && email.containsField("references") && email.get("references") != null){
+					repliesList.addAll((BasicDBList) email.get("references"));
+				}
+				
+				recursiveProcessReplies(repliesList, false);
+			}
 		}
 	}
 

@@ -20,7 +20,7 @@ public class EmailQuery {
 		EmailQuery query = new EmailQuery();
 		query.setUpDB();
 		
-		query.getEmailBySubject("Revised patch list");
+		query.getEmailBySubject("Logging extensions to NCSA httpd 1.3");
 		//query.getEmail("<9503011456.AA24767@volterra>");
 		// query.getEmailByContent("vulnerability");
 		// query.getEmailByCommit("95b2e3783820974f7eaca442296a408052b3f396");
