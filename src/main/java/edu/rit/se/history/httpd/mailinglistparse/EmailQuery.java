@@ -188,8 +188,11 @@ public class EmailQuery {
 	private void getEmailBySubject(String subject) {
 		BasicDBObject query = new BasicDBObject();
 		query.put("subject", java.util.regex.Pattern.compile(subject));
-		DBCursor emails = emailCollection.find(query);
+		
+		System.out.println(query);
 
+		DBCursor emails = emailCollection.find(query);
+		
 		if (emails != null) {
 			System.out.println(emails.count());
 			for (DBObject email : emails) {
@@ -203,7 +206,7 @@ public class EmailQuery {
 	private void getEmail(String emailID) {
 		BasicDBObject query = new BasicDBObject();
 		query.put("messageID", emailID);
-
+				
 		DBObject email = emailCollection.findOne(query);
 
 		if (email != null) {

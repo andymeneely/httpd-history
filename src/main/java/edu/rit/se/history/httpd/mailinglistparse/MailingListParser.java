@@ -120,6 +120,9 @@ public class MailingListParser {
 			try {
 
 				email.put("messageID", messages[i].getMessageID());
+				BasicDBList from =  getEmailAdress(messages[i].getFrom());
+				email.put("from", getEmailAdress(messages[i].getFrom()));
+				
 				BasicDBList replies = new BasicDBList();
 				if (messages[i].getHeader("In-Reply-To") != null) {
 					String inReplyTo = extractReplyID(messages[i].getHeader("In-Reply-To")[0]);
@@ -133,9 +136,10 @@ public class MailingListParser {
 				}
 
 				if (!replies.isEmpty()) {
-					recursiveProcessReplies(replies, true);
+					recursiveProcessReplies(replies,from, true);
 				}
-				email.put("from", getEmailAdress(messages[i].getFrom()));
+				
+				
 				// email.put("sender", messages[i].getSender().toString());
 				email.put("allRecipients", getEmailAdress(messages[i].getAllRecipients()));
 				email.put("subject", messages[i].getSubject());
@@ -154,7 +158,7 @@ public class MailingListParser {
 		}
 	}
 
-	private void recursiveProcessReplies(BasicDBList emailList, boolean direct) {
+	private void recursiveProcessReplies(BasicDBList emailList, BasicDBList from, boolean direct) {
 
 		if (!emailList.isEmpty()) {
 
@@ -164,16 +168,29 @@ public class MailingListParser {
 				BasicDBObject repliedQuery = new BasicDBObject();
 				repliedQuery.put("messageID", emailId);
 				BasicDBObject update = new BasicDBObject();
-
+				
+				// if first recursion add an directReplies else add one indirect.
 				if (direct) {
 					update.append("$inc", new BasicDBObject().append("directRepliesCount", 1));
 				} else {
 					update.append("$inc", new BasicDBObject().append("indirectRepliesCount", 1));
 				}
-
-				emailCollection.update(repliedQuery, update);
-				DBObject email = emailCollection.findOne(repliedQuery);				
-				BasicDBList repliesList = new BasicDBList();
+				
+				// append individual responders.
+				BasicDBObject responders = new BasicDBObject().append("$each", from);
+				update.put("$addToSet", new BasicDBObject().append("responders", responders));
+				
+				// Update the reply
+				emailCollection.update(repliedQuery, update); 
+				
+				// Find the specific reply.
+				DBObject email = emailCollection.findOne(repliedQuery); 
+				
+				// List of replies of this reply.
+				BasicDBList repliesList = new BasicDBList(); 
+				
+				// From
+				BasicDBList repliesFrom = new BasicDBList(); 
 				
 				if (email != null && email.containsField("inReplyTo") && email.get("inReplyTo") != null){
 					repliesList.add((String) email.get("inReplyTo"));
@@ -183,7 +200,17 @@ public class MailingListParser {
 					repliesList.addAll((BasicDBList) email.get("references"));
 				}
 				
-				recursiveProcessReplies(repliesList, false);
+				if (email != null && email.containsField("from") && email.get("from") != null){
+					repliesFrom.addAll((BasicDBList) email.get("from"));
+				}
+				
+				if (email != null && email.containsField("responders") && email.get("responders") != null){
+					repliesFrom.addAll((BasicDBList) email.get("responders"));
+				}
+				
+				if (!repliesList.isEmpty()){
+					recursiveProcessReplies(repliesList,repliesFrom, false);
+				}
 			}
 		}
 	}
