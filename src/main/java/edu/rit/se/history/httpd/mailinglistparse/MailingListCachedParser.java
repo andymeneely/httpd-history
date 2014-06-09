@@ -71,7 +71,7 @@ public class MailingListCachedParser {
 		mailingListParser.recursiveProcess();
 
 		System.out.println("Saving to MySql... ");
-		JDBMethods mysql = new JDBMethods("localhost", "db756_1", "student");
+		JDBMethods mysql = new JDBMethods("localhost", "MailingList", "student");
 		for (HashMap<String, Object> email : mailingListParser.emailData.values()) {
 			mysql.insert(email);
 		}
