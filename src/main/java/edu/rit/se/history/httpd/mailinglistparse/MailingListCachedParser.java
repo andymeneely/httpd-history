@@ -2,8 +2,11 @@ package edu.rit.se.history.httpd.mailinglistparse;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.io.StringWriter;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -27,6 +30,8 @@ import javax.mail.internet.NewsAddress;
 
 import org.apache.commons.io.IOUtils;
 
+import com.mysql.jdbc.Statement;
+
 public class MailingListCachedParser {
 
 	final static String PATH_TO_FILES = "C:/mailinglist/downloads";
@@ -42,16 +47,35 @@ public class MailingListCachedParser {
 	HashMap<String, HashMap<String, Object>> emailData = new HashMap<String, HashMap<String, Object>>();
 
 	public static void main(String[] args) {
+		PrintStream out;
+		try {
+			out = new PrintStream(new FileOutputStream("C:\\mailinglist\\output.txt"));
+			System.setOut(out);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		System.out.println("Starting parsing process...");
 		MailingListCachedParser mailingListParser = new MailingListCachedParser();
 		// mailingListParser.setUpDB();
 		mailingListParser.loadFolder(PATH_TO_FILES);
-		System.out.println(mailingListParser.emailData.get(1));
 
 		System.out.println("Processed Emails based on \\n\\nFrom : " + mailingListParser.quantity);
 		System.out.println("File level errors: " + mailingListParser.fileLevelErrors);
 		System.out.println("File parsion errors: " + mailingListParser.fileParsingErrors);
 		System.out.println("Email level errors: " + mailingListParser.emailLevelErrors);
+
+		System.out.println("Starting recursive process... ");
+
+		mailingListParser.recursiveProcess();
+
+		System.out.println("Saving to MySql... ");
+		JDBMethods mysql = new JDBMethods("localhost", "db756_1", "student");
+		for (HashMap<String, Object> email : mailingListParser.emailData.values()) {
+			mysql.insert(email);
+		}
+
 	}
 
 	private void loadFolder(String path) {
@@ -118,8 +142,8 @@ public class MailingListCachedParser {
 				Set<String> from = new HashSet<String>();
 				if (messages[i].getFrom() != null) {
 					from = getEmailAdress(messages[i].getFrom());
-					email.put("from", from);
 				}
+				email.put("from", from);
 
 				ArrayList<String> replies = new ArrayList<String>();
 
@@ -135,19 +159,15 @@ public class MailingListCachedParser {
 					replies.addAll(referenceList);
 				}
 
-				if (!replies.isEmpty()) {
-					recursiveProcessReplies(replies, from, true,0);
-				}
-
 				email.put("replies", replies);
-				email.put("responders", new HashSet<String>());
 
+				// email.put("responders", new HashSet<String>());
 				// email.put("sender", messages[i].getSender().toString());
 				if (messages[i].getAllRecipients() != null) {
 					email.put("allRecipients", getEmailAdress(messages[i].getAllRecipients()));
 				}
 				email.put("subject", messages[i].getSubject());
-				//System.out.println(messages[i].getSubject());
+				// System.out.println(messages[i].getSubject());
 
 				// email.put("content", getText(messages[i]));
 				email.put("sentDate", messages[i].getSentDate());
@@ -157,7 +177,6 @@ public class MailingListCachedParser {
 				emailCount++;
 
 				// emailCollection.insert(email);
-
 				// } catch (IOException e) {
 				// emailLevelErrors++;
 				// System.out.println("IOException on saveToDB: getContents or  IOUtils.copy error: " +
@@ -169,7 +188,24 @@ public class MailingListCachedParser {
 		}
 	}
 
-	private void recursiveProcessReplies(ArrayList<String> emailList, Set<String> from, boolean direct,int level) {
+	private void recursiveProcess() {
+		int count = 0;
+		for (HashMap<String, Object> email : emailData.values()) {
+			// System.out.println(email.get("messageID"));
+			ArrayList<String> replies = (ArrayList<String>) email.get("replies");
+			Set<String> from = (Set<String>) email.get("from");
+
+			if (!replies.isEmpty()) {
+				recursiveProcessReplies(replies, from, true, 0, ((String) email.get("messageID")));
+			}
+
+			count++;
+		}
+		System.out.println(count);
+	}
+
+	private void recursiveProcessReplies(ArrayList<String> emailList, Set<String> from, boolean direct, int level,
+			String textDisplay) {
 
 		if (!emailList.isEmpty()) {
 
@@ -239,11 +275,13 @@ public class MailingListCachedParser {
 
 					if (!repliesList.isEmpty()) {
 						level++;
-						
-						if (level > 50){							
-							System.out.println("Recursion level is: "  + level);
+
+						System.out.println("Level: " + level + " " + textDisplay);
+						if (level > 50) {
+
+							// System.out.println("Recursion level is: " + level);
 						}
-						recursiveProcessReplies(repliesList, repliesFrom, false, level);
+						recursiveProcessReplies(repliesList, repliesFrom, false, level, textDisplay + " <- " + emailId);
 					}
 				}
 			}
