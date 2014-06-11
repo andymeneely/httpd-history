@@ -48,17 +48,14 @@ public class MailingListCachedParser {
 
 	public static void main(String[] args) {
 
-/*		PrintStream out;
-		try {
-			out = new PrintStream(new FileOutputStream("C:\\mailinglist\\output.txt"));
-			System.setOut(out);
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
+		/*
+		 * PrintStream out; try { out = new PrintStream(new FileOutputStream("C:\\mailinglist\\output.txt"));
+		 * System.setOut(out); } catch (FileNotFoundException e) { // TODO Auto-generated catch block
+		 * e.printStackTrace(); }
+		 */
 
 		System.out.println("Starting parsing process...");
-		
+
 		MailingListCachedParser mailingListParser = new MailingListCachedParser();
 		mailingListParser.loadFolder(PATH_TO_FILES);
 
@@ -67,14 +64,13 @@ public class MailingListCachedParser {
 		mailingListParser.recursiveProcess();
 
 		mailingListParser.emailData.get("<199512031349.HAA13837@sierra.zyzzyva.com>");
-/*		
+
 		System.out.println("Saving to MySql... ");
 		JDBMethods mysql = new JDBMethods("localhost", "mailinglist", "student");
 
 		for (HashMap<String, Object> email : mailingListParser.emailData.values()) {
 			mysql.insert(email);
 		}
-*/
 
 		System.out.println("Processed Emails based on \\n\\nFrom : " + mailingListParser.quantity);
 		System.out.println("File level errors: " + mailingListParser.fileLevelErrors);
@@ -197,15 +193,12 @@ public class MailingListCachedParser {
 			Set<String> repliedTo = (Set<String>) email.get("replies");
 
 			if (!repliedTo.isEmpty()) {
-				recursiveProcessReplies(email, 0, ((String) email.get("messageID")));
+				recursiveProcessReplies(email);
 			}
 		}
 	}
 
-	private void recursiveProcessReplies(HashMap<String, Object> reply, int level, String textDisplay) {
-
-		level++;
-		System.out.println("Level: " + level + " " + textDisplay);
+	private void recursiveProcessReplies(HashMap<String, Object> reply) {
 
 		Set<String> repliedTo = (Set<String>) reply.get("replies");
 
@@ -213,10 +206,6 @@ public class MailingListCachedParser {
 
 			for (Object id : repliedTo) {
 				String emailId = (String) id;
-
-				// BasicDBObject repliedQuery = new BasicDBObject();
-				// repliedQuery.put("messageID", emailId);
-				// BasicDBObject update = new BasicDBObject();
 
 				HashMap<String, Object> email = emailData.get(emailId);
 
@@ -247,12 +236,7 @@ public class MailingListCachedParser {
 					repliesFrom.addAll((Set<String>) email.get("responders"));
 
 					if (!repliesList.isEmpty()) {
-
-						if (level > 50) {
-
-							// System.out.println("Recursion level is: " + level);
-						}
-						recursiveProcessReplies(email, level, textDisplay + " <- " + emailId);
+						recursiveProcessReplies(email);
 					}
 				}
 			}
