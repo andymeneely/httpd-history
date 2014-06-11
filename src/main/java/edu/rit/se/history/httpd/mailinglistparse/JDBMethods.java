@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 
 public class JDBMethods {
@@ -51,7 +52,7 @@ public class JDBMethods {
 		
 		try {
 			
-			String sql = "INSERT INTO `email`(`messageID`, `subject`, `inReplyTo`, `directRepliesCount`, `indirectRepliesCount`, `respondersCount`,`responders`) VALUES (?,?,?,?,?,?,?)";
+			String sql = "INSERT INTO `email`(`messageID`, `subject`, `inReplyTo`,`repliesCount`, `directRepliesCount`, `indirectRepliesCount`, `respondersCount`,`responders`) VALUES (?,?,?,?,?,?,?,?)";
 
 			PreparedStatement ps = this.connect.prepareStatement(sql);
 			
@@ -59,16 +60,22 @@ public class JDBMethods {
 			ps.setString(2, (String) email.get("subject"));
 			ps.setString(3, (String) email.get("inReplyTo"));
 			
-			Set<String> directReplies = (Set<String>) email.get("directReplies");
-			ps.setInt(4, directReplies.size());
-			
+			Set<String> directReplies = (Set<String>) email.get("directReplies");			
 			Set<String> indirectReplies = (Set<String>) email.get("indirectReplies");
-			ps.setInt(5, indirectReplies.size());
+			
+			Set<String> replies = new HashSet<String>();
+			replies.addAll(directReplies);
+			replies.addAll(indirectReplies);
+			
+			ps.setInt(4, replies.size());
+			
+			ps.setInt(5, directReplies.size());
+			ps.setInt(6, indirectReplies.size());
 			
 			Set<String> responders = (Set<String>) email.get("responders");
-			ps.setInt(6, responders.size());
+			ps.setInt(7, responders.size());
 			
-			ps.setString(7, ((Set<String>) email.get("responders")).toString());
+			ps.setString(8, ((Set<String>) email.get("responders")).toString());
 
 			int affectedRows = ps.executeUpdate();
 			
