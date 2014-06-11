@@ -190,11 +190,7 @@ public class MailingListCachedParser {
 
 	private void recursiveProcess() {
 		for (HashMap<String, Object> email : emailData.values()) {
-			Set<String> repliedTo = (Set<String>) email.get("replies");
-
-			if (!repliedTo.isEmpty()) {
-				recursiveProcessReplies(email);
-			}
+			recursiveProcessReplies(email);			
 		}
 	}
 
@@ -205,9 +201,8 @@ public class MailingListCachedParser {
 		if (!repliedTo.isEmpty()) {
 
 			for (Object id : repliedTo) {
-				String emailId = (String) id;
-
-				HashMap<String, Object> email = emailData.get(emailId);
+				
+				HashMap<String, Object> email = emailData.get((String) id);
 
 				if (email != null) {
 
@@ -216,26 +211,18 @@ public class MailingListCachedParser {
 					((Set<String>) email.get("indirectReplies")).addAll((Set<String>) reply.get("indirectReplies"));
 
 					// append individual responders.
-					Set<String> responders = (Set<String>) reply.get("responders");
+					Set<String> responders = (Set<String>) email.get("responders");
+					Set<String> replyResponders = (Set<String>) reply.get("responders");
 					Set<String> from = (Set<String>) reply.get("from");
 
 					for (String address : from) {
 						responders.add(address);
 					}
-
+					
+					responders.addAll(replyResponders);
 					email.put("responders", responders);
 
-					// List of replies of this reply.
-					Set<String> repliesList = new HashSet<String>();
-
-					// From
-					Set<String> repliesFrom = new HashSet<String>();
-
-					repliesList.addAll((Set<String>) email.get("replies"));
-					repliesFrom.addAll((Set<String>) email.get("from"));
-					repliesFrom.addAll((Set<String>) email.get("responders"));
-
-					if (!repliesList.isEmpty()) {
+					if (!((Set<String>) email.get("replies")).isEmpty()) {
 						recursiveProcessReplies(email);
 					}
 				}
