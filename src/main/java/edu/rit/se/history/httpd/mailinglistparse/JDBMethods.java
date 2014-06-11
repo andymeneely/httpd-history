@@ -27,14 +27,14 @@ public class JDBMethods {
 		//this.password = password;
 		setUpConection();
 		
-		PreparedStatement ps;
+		/*PreparedStatement ps;
 		try {
 			ps = this.connect.prepareStatement("TRUNCATE TABLE `email`");
 			ps.executeUpdate();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 		
 	}
 

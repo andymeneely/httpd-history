@@ -131,7 +131,7 @@ public class MailingListCachedParser {
 	private void saveToCache(MimeMessage[] messages) {
 
 		for (int i = 0; i < messages.length; i++) {
-			// BasicDBObject email = new BasicDBObject();
+			
 			HashMap<String, Object> email = new HashMap<String, Object>();
 			try {
 
@@ -166,6 +166,7 @@ public class MailingListCachedParser {
 				email.put("subject", messages[i].getSubject());
 
 				// email.put("content", getText(messages[i]));
+				
 				email.put("sentDate", messages[i].getSentDate());
 
 				email.put("directReplies", new HashSet<String>());
@@ -176,11 +177,7 @@ public class MailingListCachedParser {
 
 				emailCount++;
 
-				// emailCollection.insert(email);
-				// } catch (IOException e) {
-				// emailLevelErrors++;
-				// System.out.println("IOException on saveToDB: getContents or  IOUtils.copy error: " +
-				// e.getMessage());
+				
 			} catch (MessagingException e) {
 				emailLevelErrors++;
 				// System.out.println("MessagingException on saveToDB: getContents: " + e.getMessage());
@@ -272,14 +269,6 @@ public class MailingListCachedParser {
 
 		return result;
 	}
-
-	/*
-	 * private void setUpDB() { // mongoDB set up MongoClient mongo; try { mongo = new
-	 * MongoClient("localhost", 27017); DB db = mongo.getDB("mailinglist"); this.emailCollection =
-	 * db.getCollection("email"); } catch (UnknownHostException e) { //
-	 * System.out.println("UnknownHostException on setUpDB: There was an while setting up the database :" //
-	 * + e.getMessage()); } }
-	 */
 
 	private static boolean textIsHtml = false;
 
