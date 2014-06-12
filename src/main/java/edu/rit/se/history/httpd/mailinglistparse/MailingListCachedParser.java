@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
@@ -44,34 +45,34 @@ public class MailingListCachedParser {
 
 	int emailCount = 0;
 
+	// HashMap to contain the email data.
 	HashMap<String, HashMap<String, Object>> emailData = new HashMap<String, HashMap<String, Object>>();
 
 	public static void main(String[] args) {
 
-		/*
-		 * PrintStream out; try { out = new PrintStream(new FileOutputStream("C:\\mailinglist\\output.txt"));
-		 * System.setOut(out); } catch (FileNotFoundException e) { // TODO Auto-generated catch block
-		 * e.printStackTrace(); }
-		 */
-
-		System.out.println("Starting parsing process...");
+		// Enable to Output log to file.
+		// PrintStream out; try { out = new PrintStream(new FileOutputStream("C:\\mailinglist\\output.txt"));
+		// System.setOut(out); } catch (FileNotFoundException e) { // TODO Auto-generated catch block
+		// e.printStackTrace(); }
 
 		MailingListCachedParser mailingListParser = new MailingListCachedParser();
+
+		// Load emails to memory.
+		System.out.println("Starting parsing process...");
 		mailingListParser.loadFolder(PATH_TO_FILES);
 
+		// Process email Replies
 		System.out.println("Starting recursive process... ");
-
 		mailingListParser.recursiveProcess();
 
-		mailingListParser.emailData.get("<199512031349.HAA13837@sierra.zyzzyva.com>");
-
+		// Saves email to MySQL database.
 		System.out.println("Saving to MySql... ");
 		JDBMethods mysql = new JDBMethods("localhost", "mailinglist", "student");
-
 		for (HashMap<String, Object> email : mailingListParser.emailData.values()) {
 			mysql.insert(email);
 		}
 
+		// Prints out summary information.
 		System.out.println("Processed Emails based on \\n\\nFrom : " + mailingListParser.quantity);
 		System.out.println("File level errors: " + mailingListParser.fileLevelErrors);
 		System.out.println("File parsion errors: " + mailingListParser.fileParsingErrors);
@@ -79,6 +80,9 @@ public class MailingListCachedParser {
 
 	}
 
+	/*
+	 * List all the files of a folder. Calls loadFile() on each file.
+	 */
 	private void loadFolder(String path) {
 		File folder = new File(path);
 		File[] listOfFiles = folder.listFiles();
@@ -93,13 +97,14 @@ public class MailingListCachedParser {
 					System.out.println("Finished loading: " + file.getName());
 				} catch (IOException e) {
 					fileLevelErrors++;
-					// System.out.println("IOException on loadFolder: There is a problem reading file " +
-					// file.getName()
-					// + " - MSG: " + e.getMessage());
 				}
 			}
 		}
 	}
+
+	/*
+	 * Splits files in to a String Array for parsing.
+	 */
 
 	private void loadFile(String content) {
 		String[] textMessages = content.split("\n\nFrom ");
@@ -110,6 +115,9 @@ public class MailingListCachedParser {
 		this.parseEmails(textMessages);
 	}
 
+	/*
+	 * Parses the the String email to a MimeMessage.
+	 */
 	private void parseEmails(String[] textMessages) {
 		MimeMessage[] messages = new MimeMessage[textMessages.length];
 		Session s = Session.getDefaultInstance(new Properties());
@@ -120,18 +128,19 @@ public class MailingListCachedParser {
 				messages[i] = new MimeMessage(s, is);
 			} catch (MessagingException e) {
 				emailLevelErrors++;
-				// System.out.println("MessagingException on parseEmails: Creating the MimeMessage: " +
-				// e.getMessage());
 			}
 		}
-
-		saveToCache(messages); // save the emails to the database.
+		saveToCache(messages);
 	}
+
+	/*
+	 * Saves the emails to the cache.
+	 */
 
 	private void saveToCache(MimeMessage[] messages) {
 
 		for (int i = 0; i < messages.length; i++) {
-			
+
 			HashMap<String, Object> email = new HashMap<String, Object>();
 			try {
 
@@ -147,8 +156,11 @@ public class MailingListCachedParser {
 
 				if (messages[i].getHeader("In-Reply-To") != null) {
 					String inReplyTo = extractReplyID(messages[i].getHeader("In-Reply-To")[0]);
-					email.put("inReplyTo", inReplyTo);
-					replies.add(inReplyTo);
+
+					if (!inReplyTo.equals("<no.id>")) {
+						email.put("inReplyTo", inReplyTo);
+						replies.add(inReplyTo);
+					}
 				}
 
 				if (messages[i].getHeader("References") != null) {
@@ -166,18 +178,17 @@ public class MailingListCachedParser {
 				email.put("subject", messages[i].getSubject());
 
 				// email.put("content", getText(messages[i]));
-				
+
 				email.put("sentDate", messages[i].getSentDate());
 
+				// Set place holders for the metrics.
 				email.put("directReplies", new HashSet<String>());
 				email.put("indirectReplies", new HashSet<String>());
 				email.put("responders", new HashSet<String>());
 
 				emailData.put((String) email.get("messageID"), email);
-
 				emailCount++;
 
-				
 			} catch (MessagingException e) {
 				emailLevelErrors++;
 				// System.out.println("MessagingException on saveToDB: getContents: " + e.getMessage());
@@ -185,42 +196,70 @@ public class MailingListCachedParser {
 		}
 	}
 
-	private void recursiveProcess() {
-		for (HashMap<String, Object> email : emailData.values()) {
-			recursiveProcessReplies(email);			
-		}
+	private class Email {
+		// Email info
+		String messageID;
+		String subject;
+		Date sentDate;
+		HashSet<String> from;
+
+		String inReplyTo;
+		HashSet<String> references;
+
+		// Metrics
+		HashSet<String> directReplies;
+		HashSet<String> indirectReplies;
+		HashSet<String> responders;
 	}
 
-	private void recursiveProcessReplies(HashMap<String, Object> reply) {
+	private void recursiveProcess() {
+		for (HashMap<String, Object> email : emailData.values()) {
+			String messageID = (String) email.get("messageID");
+			cap = 0;
+			//recursiveProcessReplies(email, messageID);
+			 recursiveProcessReplies(email);
+		}
+	}
+	
+	int cap = 0;
+	//private void recursiveProcessReplies(HashMap<String, Object> reply, String textDisplay) {
+		 private void recursiveProcessReplies(HashMap<String, Object> reply) {
 
-		Set<String> repliedTo = (Set<String>) reply.get("replies");
+		if (cap <= 500) {
+			Set<String> repliedTo = (Set<String>) reply.get("replies");
 
-		if (!repliedTo.isEmpty()) {
+			if (!repliedTo.isEmpty()) {
 
-			for (Object id : repliedTo) {
-				
-				HashMap<String, Object> email = emailData.get((String) id);
+				for (Object id : repliedTo) {
 
-				if (email != null) {
+					HashMap<String, Object> email = emailData.get((String) id);
 
-					((Set<String>) email.get("directReplies")).add((String) reply.get("messageID"));
-					((Set<String>) email.get("indirectReplies")).addAll((Set<String>) reply.get("directReplies"));
-					((Set<String>) email.get("indirectReplies")).addAll((Set<String>) reply.get("indirectReplies"));
+					//String textnew = textDisplay.concat(" <- " + (String) id);
+					//System.out.println(cap + " " + textnew);
 
-					// append individual responders.
-					Set<String> responders = (Set<String>) email.get("responders");
-					Set<String> replyResponders = (Set<String>) reply.get("responders");
-					Set<String> from = (Set<String>) reply.get("from");
+					if (email != null) {
 
-					for (String address : from) {
-						responders.add(address);
-					}
-					
-					responders.addAll(replyResponders);
-					email.put("responders", responders);
+						((Set<String>) email.get("directReplies")).add((String) reply.get("messageID"));
+						((Set<String>) email.get("indirectReplies")).addAll((Set<String>) reply.get("directReplies"));
+						((Set<String>) email.get("indirectReplies")).addAll((Set<String>) reply.get("indirectReplies"));
 
-					if (!((Set<String>) email.get("replies")).isEmpty()) {
-						recursiveProcessReplies(email);
+						// append individual responders.
+						Set<String> responders = (Set<String>) email.get("responders");
+						Set<String> replyResponders = (Set<String>) reply.get("responders");
+						Set<String> from = (Set<String>) reply.get("from");
+
+						for (String address : from) {
+							responders.add(address);
+						}
+
+						responders.addAll(replyResponders);
+						email.put("responders", responders);
+
+						if (!((Set<String>) email.get("replies")).isEmpty()) {
+							cap++;
+							// recursiveProcessReplies(email, textnew);
+							 recursiveProcessReplies(email);
+						}
 					}
 				}
 			}
@@ -234,7 +273,6 @@ public class MailingListCachedParser {
 		} catch (StringIndexOutOfBoundsException e) {
 			result = reply;
 		}
-
 		return result;
 	}
 
@@ -246,7 +284,9 @@ public class MailingListCachedParser {
 
 			if (address instanceof InternetAddress) {
 				InternetAddress emailAddress = (InternetAddress) address;
-				result.add(emailAddress.getAddress().toString());
+				if (!emailAddress.getAddress().toString().equals("<no.id>")) {
+					result.add(emailAddress.getAddress().toString());
+				}
 			} else if (address instanceof NewsAddress) {
 				NewsAddress newsAddress = (NewsAddress) address;
 				result.add(newsAddress.toString());
@@ -263,7 +303,9 @@ public class MailingListCachedParser {
 		if (string != null) {
 			String[] allRecipients = string.split("\\s+");
 			for (String address : allRecipients) {
-				result.add(address);
+				if (!address.equals("<no.id>")) {
+					result.add(address);
+				}
 			}
 		}
 

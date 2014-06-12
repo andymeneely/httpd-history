@@ -27,6 +27,8 @@ public class JDBMethods {
 		//this.password = password;
 		setUpConection();
 		
+		
+		//enable these lines to clear the table on every run. 
 		/*PreparedStatement ps;
 		try {
 			ps = this.connect.prepareStatement("TRUNCATE TABLE `email`");
@@ -56,6 +58,8 @@ public class JDBMethods {
 
 			PreparedStatement ps = this.connect.prepareStatement(sql);
 			
+			//add fields from the email HashTable
+			
 			ps.setString(1, (String) email.get("messageID"));
 			ps.setString(2, (String) email.get("subject"));
 			ps.setString(3, (String) email.get("inReplyTo"));
@@ -63,15 +67,18 @@ public class JDBMethods {
 			Set<String> directReplies = (Set<String>) email.get("directReplies");			
 			Set<String> indirectReplies = (Set<String>) email.get("indirectReplies");
 			
+			
+			//merge the directReplies and indirectReplies
 			Set<String> replies = new HashSet<String>();
 			replies.addAll(directReplies);
 			replies.addAll(indirectReplies);
 			
-			ps.setInt(4, replies.size());
 			
+			ps.setInt(4, replies.size());			
 			ps.setInt(5, directReplies.size());
 			ps.setInt(6, indirectReplies.size());
 			
+			//count the distinct responders
 			Set<String> responders = (Set<String>) email.get("responders");
 			ps.setInt(7, responders.size());
 			
@@ -79,7 +86,6 @@ public class JDBMethods {
 
 			int affectedRows = ps.executeUpdate();
 			
-
 
 			if (affectedRows > 0) {
 				return true;
