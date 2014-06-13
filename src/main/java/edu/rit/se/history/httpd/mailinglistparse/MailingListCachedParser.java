@@ -63,7 +63,7 @@ public class MailingListCachedParser {
 
 		// Process email Replies
 		System.out.println("Starting recursive process... ");
-		mailingListParser.recursiveProcess();
+		//mailingListParser.recursiveProcess();
 
 		// Saves email to MySQL database.
 		System.out.println("Saving to MySql... ");
@@ -157,10 +157,10 @@ public class MailingListCachedParser {
 				if (messages[i].getHeader("In-Reply-To") != null) {
 					String inReplyTo = extractReplyID(messages[i].getHeader("In-Reply-To")[0]);
 
-					if (!inReplyTo.equals("<no.id>")) {
+					//if (!inReplyTo.equals("<no.id>")) {
 						email.setInReplyTo(inReplyTo);
 						replies.add(inReplyTo);
-					}
+					//}
 				}
 
 				if (messages[i].getHeader("References") != null) {
@@ -182,6 +182,7 @@ public class MailingListCachedParser {
 				email.setSentDate(messages[i].getSentDate());
 
 				emailData.put(email.getMessageID(), email);
+				recursiveProcessReplies(email);
 				emailCount++;
 
 			} catch (MessagingException e) {
@@ -191,45 +192,44 @@ public class MailingListCachedParser {
 		}
 	}
 
-	private void recursiveProcess() {
+	/*private void recursiveProcess() {
 		for (Email email : emailData.values()) {
-			String messageID = email.getMessageID();
-			cap = 0;
+			//String messageID = email.getMessageID();
+			//cap = 0;
 			// recursiveProcessReplies(email, messageID);
 			recursiveProcessReplies(email);
 		}
-	}
+	}*/
 
-	int cap = 0;
+	//int cap = 0;
 
 	// private void recursiveProcessReplies(HashMap<String, Object> reply, String textDisplay) {
 	private void recursiveProcessReplies(Email reply) {
 
-		if (cap <= 500) {
-			Set<String> repliedTo = (Set<String>) reply.getReplies();
+		//if (cap <= 500) {
+			Set<String> repliedTo = reply.getReplies();
 
 			if (!repliedTo.isEmpty()) {
 
-				for (Object id : repliedTo) {
+				for (String id : repliedTo) {
 
-					Email email = emailData.get((String) id);
+					Email email = emailData.get(id);
 
 					// String textnew = textDisplay.concat(" <- " + (String) id);
 					// System.out.println(cap + " " + textnew);
 
 					if (email != null) {
 
-						email.addDirectReply((String) reply.getMessageID());
+						email.addDirectReply(reply.getMessageID());
 						email.addIndirectReply(reply.getDirectReplies());
 						email.addIndirectReply(reply.getIndirectReplies());
 
-						// append individual responders.
-
+						// append responders.
 						email.addResponder(reply.getFrom());
 						email.addResponder(reply.getResponders());
 
 						if (!email.getReplies().isEmpty()) {
-							cap++;
+							// cap++;
 							// recursiveProcessReplies(email, textnew);
 							recursiveProcessReplies(email);
 						}
@@ -237,7 +237,7 @@ public class MailingListCachedParser {
 				}
 			}
 		}
-	}
+	//}
 
 	private String extractReplyID(String reply) {
 		String result = "";
@@ -257,9 +257,9 @@ public class MailingListCachedParser {
 
 			if (address instanceof InternetAddress) {
 				InternetAddress emailAddress = (InternetAddress) address;
-				if (!emailAddress.getAddress().toString().equals("<no.id>")) {
+				//if (!emailAddress.getAddress().toString().equals("<no.id>")) {
 					result.add(emailAddress.getAddress().toString());
-				}
+				//}
 			} else if (address instanceof NewsAddress) {
 				NewsAddress newsAddress = (NewsAddress) address;
 				result.add(newsAddress.toString());
@@ -276,9 +276,9 @@ public class MailingListCachedParser {
 		if (string != null) {
 			String[] allRecipients = string.split("\\s+");
 			for (String address : allRecipients) {
-				if (!address.equals("<no.id>")) {
+				//if (!address.equals("<no.id>")) {
 					result.add(address);
-				}
+				//}
 			}
 		}
 

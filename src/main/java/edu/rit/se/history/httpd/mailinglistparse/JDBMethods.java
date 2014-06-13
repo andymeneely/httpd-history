@@ -56,7 +56,7 @@ public class JDBMethods {
 		
 		try {
 			
-			String sql = "INSERT INTO `email`(`messageID`, `subject`, `inReplyTo`,`repliesCount`, `directRepliesCount`, `indirectRepliesCount`, `respondersCount`,`responders`) VALUES (?,?,?,?,?,?,?,?)";
+			String sql = "INSERT INTO `emailTest`(`messageID`, `subject`, `inReplyTo`,`repliesCount`, `directRepliesCount`, `indirectRepliesCount`, `respondersCount`,`responders`) VALUES (?,?,?,?,?,?,?,?)";
 
 			PreparedStatement ps = this.connect.prepareStatement(sql);
 			
@@ -81,10 +81,9 @@ public class JDBMethods {
 			ps.setInt(6, indirectReplies.size());
 			
 			//count the distinct responders
-			Set<String> responders = (Set<String>) email.getResponders();
-			ps.setInt(7, responders.size());
+			ps.setInt(7, email.getResponders().size());
 			
-			ps.setString(8, ((Set<String>) email.getResponders()).toString());
+			ps.setString(8, email.getResponders().toString());
 
 			int affectedRows = ps.executeUpdate();
 			
