@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
+import edu.rit.se.history.httpd.mailinglistparse.MailingListCachedParser.Email;
+
 public class JDBMethods {
 
 	private String ip;
@@ -50,7 +52,7 @@ public class JDBMethods {
 
 	}
 	
-	public boolean insert(HashMap<String, Object> email) {
+	public boolean insert(Email email) {
 		
 		try {
 			
@@ -60,12 +62,12 @@ public class JDBMethods {
 			
 			//add fields from the email HashTable
 			
-			ps.setString(1, (String) email.get("messageID"));
-			ps.setString(2, (String) email.get("subject"));
-			ps.setString(3, (String) email.get("inReplyTo"));
+			ps.setString(1, email.getMessageID());
+			ps.setString(2, email.getSubject());
+			ps.setString(3, email.getInReplyTo());
 			
-			Set<String> directReplies = (Set<String>) email.get("directReplies");			
-			Set<String> indirectReplies = (Set<String>) email.get("indirectReplies");
+			Set<String> directReplies = email.getDirectReplies();			
+			Set<String> indirectReplies = email.getIndirectReplies();
 			
 			
 			//merge the directReplies and indirectReplies
@@ -79,10 +81,10 @@ public class JDBMethods {
 			ps.setInt(6, indirectReplies.size());
 			
 			//count the distinct responders
-			Set<String> responders = (Set<String>) email.get("responders");
+			Set<String> responders = (Set<String>) email.getResponders();
 			ps.setInt(7, responders.size());
 			
-			ps.setString(8, ((Set<String>) email.get("responders")).toString());
+			ps.setString(8, ((Set<String>) email.getResponders()).toString());
 
 			int affectedRows = ps.executeUpdate();
 			
