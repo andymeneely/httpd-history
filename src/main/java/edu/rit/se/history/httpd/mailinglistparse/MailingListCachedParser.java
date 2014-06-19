@@ -62,8 +62,8 @@ public class MailingListCachedParser {
 		mailingListParser.loadFolder(PATH_TO_FILES);
 
 		// Process email Replies
-		System.out.println("Starting recursive process... ");
-		//mailingListParser.recursiveProcess();
+		// System.out.println("Starting recursive process... ");
+		// mailingListParser.recursiveProcess();
 
 		// Saves email to MySQL database.
 		System.out.println("Saving to MySql... ");
@@ -182,6 +182,9 @@ public class MailingListCachedParser {
 				email.setSentDate(messages[i].getSentDate());
 
 				emailData.put(email.getMessageID(), email);
+				
+				// Restart the cap of replies
+				cap = 0;
 				recursiveProcessReplies(email);
 				emailCount++;
 
@@ -195,18 +198,18 @@ public class MailingListCachedParser {
 	/*private void recursiveProcess() {
 		for (Email email : emailData.values()) {
 			//String messageID = email.getMessageID();
-			//cap = 0;
+			// cap = 0;
 			// recursiveProcessReplies(email, messageID);
 			recursiveProcessReplies(email);
 		}
 	}*/
 
-	//int cap = 0;
+	int cap = 0;
 
 	// private void recursiveProcessReplies(HashMap<String, Object> reply, String textDisplay) {
 	private void recursiveProcessReplies(Email reply) {
-
-		//if (cap <= 500) {
+		
+		if (cap <= 500) {
 			Set<String> repliedTo = reply.getReplies();
 
 			if (!repliedTo.isEmpty()) {
@@ -229,7 +232,7 @@ public class MailingListCachedParser {
 						email.addResponder(reply.getResponders());
 
 						if (!email.getReplies().isEmpty()) {
-							// cap++;
+							cap++;
 							// recursiveProcessReplies(email, textnew);
 							recursiveProcessReplies(email);
 						}
@@ -237,7 +240,7 @@ public class MailingListCachedParser {
 				}
 			}
 		}
-	//}
+	}
 
 	private String extractReplyID(String reply) {
 		String result = "";
