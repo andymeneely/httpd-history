@@ -19,7 +19,7 @@ public class JDBMethods {
 	private String username;
 	private String password;
 
-	private Connection connect = null;
+	public Connection connect = null;
 
 	public JDBMethods(String ip, String dbname, String username) {
 		super();
