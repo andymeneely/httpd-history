@@ -66,12 +66,12 @@ public class JDBMethods {
 			ps.setString(2, email.getSubject());
 			ps.setString(3, email.getInReplyTo());
 			
-			Set<String> directReplies = email.getDirectReplies();			
-			Set<String> indirectReplies = email.getIndirectReplies();
+			HashSet<Email> directReplies = email.getDirectReplies();			
+			HashSet<Email> indirectReplies = email.getIndirectReplies();
 			
 			
 			//merge the directReplies and indirectReplies
-			Set<String> replies = new HashSet<String>();
+			HashSet<Email> replies = new HashSet<Email>();
 			replies.addAll(directReplies);
 			replies.addAll(indirectReplies);
 			

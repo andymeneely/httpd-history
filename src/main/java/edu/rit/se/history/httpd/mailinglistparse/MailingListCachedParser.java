@@ -63,8 +63,8 @@ public class MailingListCachedParser {
 		mailingListParser.loadFolder(PATH_TO_FILES);
 
 		// Process email Replies
-		// System.out.println("Starting recursive process... ");
-		// mailingListParser.recursiveProcess();
+		System.out.println("Starting recursive process... ");
+		mailingListParser.recursiveProcess();
 
 		// Saves email to MySQL database.
 		System.out.println("Saving to MySql... ");
@@ -162,19 +162,18 @@ public class MailingListCachedParser {
 				}
 				email.setFrom(from);
 
-				HashSet<String> replies = new HashSet<String>();
+				HashSet<Email> replies = new HashSet<Email>();
 
 				if (messages[i].getHeader("In-Reply-To") != null) {
 					String inReplyTo = extractReplyID(messages[i].getHeader("In-Reply-To")[0]);
 
-					// if (!inReplyTo.equals("<no.id>")) {
 					email.setInReplyTo(inReplyTo);
-					replies.add(inReplyTo);
-					// }
+					replies.add(emailData.get(inReplyTo));
+
 				}
 
 				if (messages[i].getHeader("References") != null) {
-					HashSet<String> referenceList = getEmailAdress(messages[i].getHeader("References")[0]);
+					HashSet<Email> referenceList = getEmailAdress(messages[i].getHeader("References")[0]);
 					email.setReferences(referenceList);
 					replies.addAll(referenceList);
 				}
@@ -193,8 +192,7 @@ public class MailingListCachedParser {
 
 				emailData.put(email.getMessageID(), email);
 
-				
-				recursiveProcessReplies(email);
+				// recursiveProcessReplies(email);
 				emailCount++;
 
 			} catch (MessagingException e) {
@@ -204,25 +202,24 @@ public class MailingListCachedParser {
 		}
 	}
 
-	/*
-	 * private void recursiveProcess() { for (Email email : emailData.values()) { //String messageID =
-	 * email.getMessageID(); // cap = 0; // recursiveProcessReplies(email, messageID);
-	 * recursiveProcessReplies(email); } }
-	 */
+	private void recursiveProcess() {
+		for (Email email : emailData.values()) {
+			// String messageID =
+			// email.getMessageID();
+			// cap = 0;
+			// recursiveProcessReplies(email, messageID);
+			recursiveProcessReplies(email);
+		}
+	}
 
 	int cap = 0;
 
 	// private void recursiveProcessReplies(HashMap<String, Object> reply, String textDisplay) {
 	private void recursiveProcessReplies(Email reply) {
 
-		
-		Set<String> repliedTo = reply.getReplies();
+		if (!reply.getReplies().isEmpty()) {
 
-		if (!repliedTo.isEmpty()) {
-
-			for (String id : repliedTo) {
-
-				Email email = emailData.get(id);
+			for (Email email : reply.getReplies()) {
 
 				// String textnew = textDisplay.concat(" <- " + (String) id);
 				// System.out.println(cap + " " + textnew);
@@ -230,22 +227,23 @@ public class MailingListCachedParser {
 				if (email != null) {
 
 					// Verify if the recursion is needed for this particular email.
-					boolean go = true;
-					if (email.containsReply(reply)) {
-						go = false;
-					}
 
-					email.addDirectReply(reply.getMessageID());
-					email.addIndirectReply(reply.getDirectReplies());
-					email.addIndirectReply(reply.getIndirectReplies());
+					if (!email.directReplies.contains(reply)
+							|| !email.indirectReplies.containsAll(reply.getDirectReplies())
+							|| !email.indirectReplies.containsAll(reply.getIndirectReplies())) {
 
-					// append responders.
-					email.addResponder(reply.getFrom());
-					email.addResponder(reply.getResponders());
+						email.addDirectReply(reply);
+						email.addIndirectReply(reply.getDirectReplies());
+						email.addIndirectReply(reply.getIndirectReplies());
 
-					if (!email.getReplies().isEmpty() && go) {
-						// recursiveProcessReplies(email, textnew);
-						recursiveProcessReplies(email);
+						// append responders.
+						email.addResponder(reply.getFrom());
+						email.addResponder(reply.getResponders());
+
+						if (!email.getReplies().isEmpty()) {
+							// recursiveProcessReplies(email, textnew);
+							recursiveProcessReplies(email);
+						}
 					}
 				}
 			}
@@ -270,9 +268,9 @@ public class MailingListCachedParser {
 
 			if (address instanceof InternetAddress) {
 				InternetAddress emailAddress = (InternetAddress) address;
-				// if (!emailAddress.getAddress().toString().equals("<no.id>")) {
+				
 				result.add(emailAddress.getAddress().toString());
-				// }
+				
 			} else if (address instanceof NewsAddress) {
 				NewsAddress newsAddress = (NewsAddress) address;
 				result.add(newsAddress.toString());
@@ -282,16 +280,14 @@ public class MailingListCachedParser {
 		return result;
 	}
 
-	private HashSet<String> getEmailAdress(String string) {
+	private HashSet<Email> getEmailAdress(String string) {
 
-		HashSet<String> result = new HashSet<String>();
+		HashSet<Email> result = new HashSet<Email>();
 
 		if (string != null) {
 			String[] allRecipients = string.split("\\s+");
 			for (String address : allRecipients) {
-				// if (!address.equals("<no.id>")) {
-				result.add(address);
-				// }
+				result.add(emailData.get(address));
 			}
 		}
 
@@ -375,13 +371,16 @@ public class MailingListCachedParser {
 		private HashSet<String> allRecipients = new HashSet<String>();
 
 		private String inReplyTo;
-		private HashSet<String> references = new HashSet<String>();
+		private HashSet<Email> references = new HashSet<Email>();
 
 		// Metrics
-		private HashSet<String> directReplies = new HashSet<String>();
-		private HashSet<String> indirectReplies = new HashSet<String>();
 		private HashSet<String> responders = new HashSet<String>();
-		private HashSet<String> replies = new HashSet<String>();
+		private HashSet<Email> replies = new HashSet<Email>();
+		
+		private HashSet<Email> directReplies = new HashSet<Email>();
+		private HashSet<Email> indirectReplies = new HashSet<Email>();
+		
+		
 
 		public HashSet<String> getAllRecipients() {
 			return allRecipients;
@@ -391,43 +390,49 @@ public class MailingListCachedParser {
 			this.allRecipients = allRecipients;
 		}
 
-		public void addReferences(String reference) {
+		public void addReferences(Email reference) {
 			this.directReplies.add(reference);
 		}
 
-		public void setReplies(HashSet<String> replies) {
+		public void setReplies(HashSet<Email> replies) {
 			this.replies = replies;
 		}
 
-		public HashSet<String> getReplies() {
+		public HashSet<Email> getReplies() {
 			return replies;
 		}
 
-		public boolean containsReply(Email reply) {
+		public boolean processedDirectReply(Email reply) {
 
-			boolean result = false;
-
-			if (this.directReplies.contains(reply.getMessageID())
-					|| this.indirectReplies.contains(reply.getMessageID())) {
-				result = true;
+			if (this.directReplies.contains(reply)) {
+				return true;
 			}
 
-			return result;
+			return false;
 		}
 
-		public void addDirectReply(String reply) {
+		public boolean processedIndirectReply(Email reply) {
+
+			if (this.indirectReplies.contains(reply)) {
+				return true;
+			}
+
+			return false;
+		}
+
+		public void addDirectReply(Email reply) {
 			this.directReplies.add(reply);
 		}
 
-		public void addIndirectReply(String reply) {
+		public void addIndirectReply(Email reply) {
 			this.indirectReplies.add(reply);
 		}
 
-		public void addDirectReply(HashSet<String> replies) {
+		public void addDirectReply(HashSet<Email> replies) {
 			this.directReplies.addAll(replies);
 		}
 
-		public void addIndirectReply(HashSet<String> replies) {
+		public void addIndirectReply(HashSet<Email> replies) {
 			this.indirectReplies.addAll(replies);
 		}
 
@@ -479,27 +484,27 @@ public class MailingListCachedParser {
 			this.inReplyTo = inReplyTo;
 		}
 
-		public HashSet<String> getReferences() {
+		public HashSet<Email> getReferences() {
 			return references;
 		}
 
-		public void setReferences(HashSet<String> references) {
+		public void setReferences(HashSet<Email> references) {
 			this.references = references;
 		}
 
-		public HashSet<String> getDirectReplies() {
+		public HashSet<Email> getDirectReplies() {
 			return directReplies;
 		}
 
-		public void setDirectReplies(HashSet<String> directReplies) {
+		public void setDirectReplies(HashSet<Email> directReplies) {
 			this.directReplies = directReplies;
 		}
 
-		public HashSet<String> getIndirectReplies() {
+		public HashSet<Email> getIndirectReplies() {
 			return indirectReplies;
 		}
 
-		public void setIndirectReplies(HashSet<String> indirectReplies) {
+		public void setIndirectReplies(HashSet<Email> indirectReplies) {
 			this.indirectReplies = indirectReplies;
 		}
 
