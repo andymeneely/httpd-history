@@ -62,25 +62,10 @@ public class MailingListCachedParser {
 		System.out.println("Starting parsing process...");
 		mailingListParser.loadFolder(PATH_TO_FILES);
 
-		// Process email Replies
-		System.out.println("Starting recursive process... ");
-		mailingListParser.recursiveProcess();
+		mailingListParser.recursiveProcess();		
+		
+		mailingListParser.saveToDB();
 
-		// Saves email to MySQL database.
-		System.out.println("Saving to MySql... ");
-		JDBMethods mysql = new JDBMethods("localhost", "mailinglist", "student");
-
-		try {
-			mysql.connect.setAutoCommit(false);
-
-			for (Email email : mailingListParser.emailData.values()) {
-				mysql.insert(email);
-			}
-			mysql.connect.commit();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 
 		// Prints out summary information.
 		System.out.println("Processed Emails based on \\n\\nFrom : " + mailingListParser.quantity);
@@ -88,6 +73,28 @@ public class MailingListCachedParser {
 		System.out.println("File parsion errors: " + mailingListParser.fileParsingErrors);
 		System.out.println("Email level errors: " + mailingListParser.emailLevelErrors);
 
+	}
+	
+	
+	/*
+	 * Saves email to MySQL database.
+	 */
+	private void saveToDB(){	
+		
+		System.out.println("Saving to MySql... ");
+		JDBMethods mysql = new JDBMethods("localhost", "mailinglist", "student");
+		
+		try {
+			mysql.connect.setAutoCommit(false);
+
+			for (Email email : this.emailData.values()) {
+				mysql.insert(email);
+			}
+			mysql.connect.commit();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	/*
@@ -203,6 +210,7 @@ public class MailingListCachedParser {
 	}
 
 	private void recursiveProcess() {
+		System.out.println("Starting recursive process... ");
 		for (Email email : emailData.values()) {
 			// String messageID =
 			// email.getMessageID();

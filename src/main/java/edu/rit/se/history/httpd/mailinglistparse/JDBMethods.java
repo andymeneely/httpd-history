@@ -52,11 +52,44 @@ public class JDBMethods {
 
 	}
 	
+	public boolean updateWithCSV(String messageId,boolean vcc, boolean preCommit,String discussion, boolean security, boolean securityCVE, boolean securityGeneral){
+		
+		try {
+			
+			String sql = "UPDATE `email` SET `VCC`=?,`preCommit`=?,`discussion`=?,`security`=?,`securityCVE`=?,`securityGeneral`=? WHERE `messageID`=?";
+
+			PreparedStatement ps = this.connect.prepareStatement(sql);
+			
+			ps.setBoolean(1, vcc);
+			ps.setBoolean(2, preCommit);
+			ps.setString(3, discussion);
+			ps.setBoolean(4, security);
+			ps.setBoolean(5, securityCVE);
+			ps.setBoolean(6, securityGeneral);
+			ps.setString(7, messageId);
+
+			int affectedRows = ps.executeUpdate();
+			
+
+			if (affectedRows > 0) {
+				return true;
+			} else {
+				System.out.println("Error with messageId: " + messageId);
+				return false;
+			}
+
+		} catch (SQLException e) {
+			System.out.println("Insert Error: " + e.getMessage());
+		}
+		
+		return false;		
+	}
+	
 	public boolean insert(Email email) {
 		
 		try {
 			
-			String sql = "INSERT INTO `emailTest`(`messageID`, `subject`, `inReplyTo`,`repliesCount`, `directRepliesCount`, `indirectRepliesCount`, `respondersCount`,`responders`) VALUES (?,?,?,?,?,?,?,?)";
+			String sql = "INSERT INTO `email`(`messageID`, `subject`, `inReplyTo`,`repliesCount`, `directRepliesCount`, `indirectRepliesCount`, `respondersCount`,`responders`) VALUES (?,?,?,?,?,?,?,?)";
 
 			PreparedStatement ps = this.connect.prepareStatement(sql);
 			
