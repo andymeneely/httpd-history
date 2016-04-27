@@ -7,3 +7,6 @@ bin/
 bisect.properties
 .classpath
 .settings/*
+
+# Files that could potentially contain sensitive information
+analysis/db.settings.R
