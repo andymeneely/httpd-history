@@ -90,7 +90,7 @@ for(release in unique(plot.dataset$release)){
   )
 }
 
-# Export Resolution: 550 x 400
+# Export Resolution: 500 x 400
 ggplot(plot.source, aes(x = file.percent, y = vuln.percent)) +
   geom_line(size = 1) +
   scale_x_continuous(labels = scales::percent, breaks = seq(0, 1.0, by = 0.1)) +
@@ -133,7 +133,7 @@ plot.dataset <- filter.dataset(dataset, filter.type = "bug")
 #####################
 
 ### Base
-#### Export Resolution: 400 x 380
+#### Export Resolution: 400 x 460
 ggplot(plot.dataset, aes(x = becomes_vulnerable, y = sloc)) +
   geom_violin(aes(fill = becomes_vulnerable), alpha = 0.3) +
   geom_boxplot(width = 0.07, outlier.size = 1) +
@@ -152,7 +152,7 @@ ggplot(plot.dataset, aes(x = becomes_vulnerable, y = sloc)) +
   theme(legend.position = "none")
 
 ### Reference
-#### Export Resolution: 400 x 380
+#### Export Resolution: 400 x 460
 ggplot(plot.dataset, aes(x = becomes_vulnerable, y = num_bugs)) +
   geom_violin(aes(fill = becomes_vulnerable), alpha = 0.3) +
   geom_boxplot(width = 0.07, outlier.size = 1) +
@@ -203,7 +203,7 @@ ggplot(plot.source, aes(x = becomes_vulnerable, y = value)) +
     labels = c("TRUE" = "Yes", "FALSE" = "No"),
     name = "Vulnerable"
   ) +
-  facet_wrap(~ label, nrow = 1, scales = "free_x") +
+  facet_wrap(~ label, nrow = 1, scales = "free") +
   labs(
     title = "Distribution of Pre-release Bug Category Metrics",
     x = "Vulnerable", y = "Metric Value (Log Scale)"
